@@ -1,0 +1,82 @@
+package a2b.mobile.android.pages;
+
+import java.awt.Dimension;
+import java.awt.Robot;
+import java.awt.event.KeyEvent;
+import java.util.HashMap;
+import java.util.List;
+
+import org.openqa.selenium.By;
+
+import org.openqa.selenium.JavascriptExecutor;
+import org.openqa.selenium.WebElement;
+import org.openqa.selenium.interactions.Actions;
+import org.openqa.selenium.interactions.touch.TouchActions;
+import org.openqa.selenium.remote.RemoteWebElement;
+import org.openqa.selenium.support.PageFactory;
+
+import a2b.core.logs.LogManager;
+import amazon.config.gblConstants;
+import amazon.core.accelerators.AppiumActionEngine;
+import amazon.core.accelerators.AppiumActionEngine.DIRECTION;
+import amazon.mobile.android.engine.A2BMobileActionEngine;
+import amazon.mobile.android.engine.A2BMobileTestEngine;
+import io.appium.java_client.MobileBy;
+import io.appium.java_client.MobileElement;
+import io.appium.java_client.TouchAction;
+import io.appium.java_client.pagefactory.AndroidFindBy;
+import io.appium.java_client.pagefactory.AppiumFieldDecorator;
+import io.appium.java_client.touch.TapOptions;
+import io.appium.java_client.touch.offset.PointOption;
+
+public class InventoryPage extends A2BMobileTestEngine{
+	private A2BMobileActionEngine appEngine = null;
+	
+	
+	
+	public final String eleEditAsset = "xpath=//android.widget.EditText[contains(@resource-id,'"+ gblConstants.replaceText+"')]";
+	
+	
+	public final String eleUserFields = "xpath=//*[@text='"+ gblConstants.replaceText+"']";
+	
+	 @AndroidFindBy(xpath = "//*[@text='START]")
+		private WebElement btnStart;
+	 
+	 @AndroidFindBy(id = "com.a2b.rfid.rfidandroid:id/itemNameEditText")
+		private WebElement btnAddGroupingd;
+	 
+
+	
+
+		
+	 
+	//*************************************************************************************
+
+	
+	
+		public InventoryPage(A2BMobileActionEngine actEng) {
+			appEngine = actEng;
+			PageFactory.initElements(new AppiumFieldDecorator(appEngine.getDriver()),this);
+			 //actEng.loadPage();
+		}
+		
+	
+		public boolean waitForPage() {
+			boolean res = false;
+			try {
+				
+				Thread.sleep(3000);
+				res =this.appEngine.driver.findElementByXPath("//*[@text='START']").isDisplayed();
+				
+				
+				//res = this.appEngine.waitForElementVisibles(btnStart, gblConstants.pageLoadTimeout * 2);
+			} catch (Exception e) {
+				LogManager.logError(LoginPage.class.getName(), "Failed to load the Groupings Screen..");
+			}
+			return res;
+		}
+	
+		
+		
+	
+	}

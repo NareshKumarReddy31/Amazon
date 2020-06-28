@@ -1,0 +1,368 @@
+package a2b.mobile.Phase_4;
+
+
+import org.testng.annotations.Parameters;
+
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.Random;
+
+import org.testng.ITestContext;
+import org.testng.annotations.AfterClass;
+import org.testng.annotations.AfterSuite;
+import org.testng.annotations.BeforeClass;
+import org.testng.annotations.DataProvider;
+import org.testng.annotations.Parameters;
+import org.testng.annotations.Test;
+import com.aventstack.extentreports.Status;
+
+import a2b.core.fileutils.TestDataProviders;
+import a2b.core.logs.LogManager;
+import a2b.mobile.Home.tests.HomePageTest;
+import a2b.mobile.android.pages.*;
+import amazon.core.accelerators.AppiumActionEngine.DIRECTION;
+import amazon.mobile.android.engine.A2BMobileTestEngine;
+
+
+public class Phase_4_Tests extends A2BMobileTestEngine {
+	
+	private LoginPage loginPage;
+	private HomePage homePage;
+	private SearchPage searchPg;
+	private AssignPage Assignpg;
+	
+	private String className = Phase_4_Tests.class.getName();;
+	
+	@BeforeClass
+	public void login() throws Throwable {
+		try {
+			tcReport = super.tcReport;
+			if (loginUsingDefaultUser()) {
+				LogManager.logInfo(this.className ,"Successfully logged into RFID Mobile APp");
+				
+			} else {
+				LogManager.logInfo(this.className,"Unable to Log Into ICM GUI");
+			}
+
+		} catch (Exception e) {
+			e.printStackTrace();
+			LogManager.logException(e, className, "Exception to login into  ICM GUI application");
+		}
+	} 
+	
+	
+	
+	@DataProvider(name="Assign")
+	public static Object[][] CreateAlertsWithMultipleSites() throws FileNotFoundException, IOException{
+		String inpFileName = "RFIDAPPTestData.xlsx";
+		String inpSheetName = "Assign";
+		Object[][] data = TestDataProviders.loadExcelTable(inpFileName, inpSheetName);		
+		return data;		
+	}
+
+	@Test(dataProvider="Assign", dataProviderClass = Phase_4_Tests.class)
+	public void Test01_AssignAsset(HashMap<String, String> inpDetails,ITestContext testContext) throws Throwable {
+		boolean res = false;	
+		// Read Test Data 
+		String strId_1 = inpDetails.get("ItemID-1").trim();
+		String strId_2 = inpDetails.get("ItemID-2").trim();
+		String strCustodian = inpDetails.get("Custodian").trim();
+		String strLocation = inpDetails.get("Location").trim();
+		
+	
+	
+		homePage = new HomePage(this.appActionEngine);
+		
+		
+		
+		try {		
+		//homePage.RefreshHomePageElements();
+		if (homePage.waitForPage()) {
+			reportStatus(true,"Successfully Logged in to Mobile Home Page","Home page"); 
+			
+			homePage.fullViewHomeScreen();
+			res = homePage.clickHomeIcon("Assign Asset");
+			reportStatus(res,"Successfully Clicked On Assign ICon On Mobile-HomePage ","failed to click on Assign Icon On-Mobile HomePage");
+			Assignpg = new AssignPage(this.appActionEngine);
+
+			
+			
+			if (Assignpg.waitForPage()) {
+				reportStatus(true,"verified Successfully-1.	The Assign Asset screen loads in barcode mode automatically with the cursor flashing in the Item ID box ","Assign  Screen"); 
+				
+				Assignpg.clickOnAssign();
+				Assignpg.VerifyErrorsOnAssigneeScreen("This field is required");
+				
+				
+				  // Assignpg.fullViewAssigncreen();
+				  Assignpg.EnterTextOnEditAssigneeScreen ("scanEditText", strId_1, false);
+				  Assignpg.ClickOnSearchIconAssignee("scanEditText");
+				  reportStatus(res,"Successfully Clicked On Search icon ","failed to click on Assignee search icon");
+				  Assignpg.verifySearchedResults(strId_1+"/", true);
+				  
+				  // Verify Error Messages only enter Asset id 
+				  Assignpg.EnterTextOnEditAssigneeScreen ("scanEditText", strId_2, false);
+				  Assignpg.ClickOnSearchIconAssignee("scanEditText");
+				  Assignpg.verifySearchedResults(strId_2+"/", false);
+				  Assignpg.clickOnAssign();
+				  Assignpg.VerifyErrorsOnAssigneeScreen("You should provide a Location or a Custodian");
+				  
+			      // Enter Location and Custodian details and click on assign
+				  Assignpg.EnterTextOnEditAssigneeScreen("Assignee", strCustodian, true);
+
+				  Assignpg.EnterTextOnEditAssigneeScreen("Location", strLocation, true);
+
+				  
+				  attachScreenshot(Status.INFO, "info");
+				  Assignpg.clickOnAssign();
+				  attachScreenshot(Status.INFO, "info");
+				
+				
+				  
+			      //******************************* Not Supported test -Steps******************************
+				  
+				  // Navigate to Home page
+				  
+				  // verify Asset details - after completion of Assignment.
+				 
+				  this.appActionEngine.swipe(this.appActionEngine.driver, DIRECTION.UP);
+				  this.appActionEngine.swipe(this.appActionEngine.driver, DIRECTION.DOWN);
+				  res = this.appActionEngine.ScroolElementVisible("com.a2b.rfid.rfidandroid:id/homeRecyclerView","Inventory");
+				  
+				  res = homePage.clickHomeIcon("Search");
+				  reportStatus(res,"Successfully Clicked On Search ICon On Mobile-HomePage ","failed to click on Search Icon On-Mobile HomePage");
+				  searchPg = new SearchPage(this.appActionEngine);
+				  
+				  if(searchPg.waitForPage()) {
+					  reportStatus(true,"verified Successfully-The Search / Pro-Locate page loads in barcode mode automatically with the cursor flashing in the search box ","Search Page"); 
+					  attachScreenshot(Status.INFO, "info");
+						res= searchPg.SearchAsset(strId_2);
+						reportStatus(res,"Search operation done successfully ","Search operation fail ");
+						searchPg.fullViewAssetDetailPage();
+						searchPg.AssetDetals("Custodian", strCustodian);
+						searchPg.AssetDetals("Location", strLocation);	
+						attachScreenshot(Status.INFO, "info");
+				  }else {
+					  reportStatus(false,"Search page ","unable to navigate to search screen");
+				  }
+				 
+				}else {
+					reportStatus(false,"Asset detial  ","Fail to set Asset detial Full screen view");
+				}
+				res = searchPg.clickOnBackButton();
+				reportStatus(res,"Successfull Navigated to Home Page..","Failed to Navigate home page");
+			}
+		} catch (Exception e) {
+			reportStatus(false,"Search Asset Tect case failed to Initiate..","Search Asset");
+		e.printStackTrace();
+	}
+}
+
+	
+
+	@Test(dataProvider="Assign", dataProviderClass = Phase_4_Tests.class)
+	public void Test02_AssignAsset(HashMap<String, String> inpDetails,ITestContext testContext) throws Throwable {
+		boolean res = false;	
+		// Read Test Data 
+		String strId_1 = inpDetails.get("ItemID-1").trim();
+		String strId_2 = inpDetails.get("ItemID-2").trim();
+		String strCustodian = inpDetails.get("Custodian_1").trim();
+		String strLocation = inpDetails.get("Location").trim();
+		
+	
+	
+		homePage = new HomePage(this.appActionEngine);
+		try {		
+		//homePage.RefreshHomePageElements();
+		if (homePage.waitForPage()) {
+			reportStatus(true,"Successfully Logged in to Mobile Home Page","Home page"); 
+			
+			homePage.fullViewHomeScreen();
+			res = homePage.clickHomeIcon("Assign Asset");
+			reportStatus(res,"Successfully Clicked On Assign ICon On Mobile-HomePage ","failed to click on Assign Icon On-Mobile HomePage");
+			Assignpg = new AssignPage(this.appActionEngine);
+			
+			if (Assignpg.waitForPage()) {
+				reportStatus(true,"verified Successfully-1.	The Assign Asset screen loads in barcode mode automatically with the cursor flashing in the Item ID box ","Assign  Screen"); 
+				
+				// Change Scanning Mode to RFID
+				Assignpg.selectModeOfScan("RfidMode");
+				
+				  Assignpg.EnterTextOnEditAssigneeScreen ("scanEditText", strId_1, false);
+				  Assignpg.ClickOnSearchIconAssignee("scanEditText");
+				  Thread.sleep(1000);
+				  reportStatus(res,"Successfully Clicked On Search icon ","failed to click on Assignee search icon");
+				  
+				  Assignpg.EnterTextOnEditAssigneeScreen ("scanEditText", strId_2, false);
+				  Assignpg.ClickOnSearchIconAssignee("scanEditText");
+				  Thread.sleep(1000);
+				  reportStatus(res,"Successfully Clicked On Search icon ","failed to click on Assignee search icon");
+				  
+				  
+				  Assignpg.verifySearchedResults(strId_1+"/", false);
+				  reportStatus(res,"Successfully verifiedSearched ID's Loaded Properly:  "+strId_1+" And "+strId_2,"failed to click on Assignee search icon");
+				  attachScreenshot(Status.INFO, "info");
+			      // Enter Custodian 
+				  Assignpg.EnterTextOnEditAssigneeScreen("Assignee", strCustodian, true);
+
+				  
+				  // Change Scanning Mode to RFID to Bar code
+					Assignpg.selectModeOfScan("BarCodeMode");
+				  // Select Location 
+
+
+					Assignpg.EnterTextOnEditAssigneeScreen("Location", strLocation, true);
+				  attachScreenshot(Status.INFO, "info");
+				  Assignpg.clickOnAssign();
+				  attachScreenshot(Status.INFO, "info");
+				
+					  
+			      //******************************* Not Supported test -Steps******************************
+				  
+				  // Navigate to Home page
+				  
+				  // verify Asset details - after completion of Assignment.
+				  
+				  this.appActionEngine.swipe(this.appActionEngine.driver, DIRECTION.UP);
+				  this.appActionEngine.swipe(this.appActionEngine.driver, DIRECTION.DOWN);
+				  res = this.appActionEngine.ScroolElementVisible("com.a2b.rfid.rfidandroid:id/homeRecyclerView","Inventory");
+				  
+				  
+				  res = homePage.clickHomeIcon("Search");
+				  reportStatus(res,"Successfully Clicked On Search ICon On Mobile-HomePage ","failed to click on Search Icon On-Mobile HomePage");
+				  searchPg = new SearchPage(this.appActionEngine);
+				  
+				  if(searchPg.waitForPage()) {
+					  reportStatus(true,"verified Successfully-The Search / Pro-Locate page loads in barcode mode automatically with the cursor flashing in the search box ","Search Page"); 
+					  attachScreenshot(Status.INFO, "info");
+						res= searchPg.SearchAsset(strId_1);
+						reportStatus(res,"Search operation done successfully ","Search operation fail ");
+						
+						searchPg.fullViewAssetDetailPage();
+						
+						searchPg.AssetDetals("Custodian", strCustodian);
+						searchPg.AssetDetals("Location", strLocation);
+						attachScreenshot(Status.INFO, "info");
+						
+						// Back to Home
+						searchPg.clickOnBackButton();
+						Thread.sleep(1000);
+						res = homePage.clickHomeIcon("Search");
+						  reportStatus(res,"Successfully Clicked On Search ICon On Mobile-HomePage ","failed to click on Search Icon On-Mobile HomePage");
+						 
+						  Thread.sleep(1000);
+						
+						res= searchPg.SearchAsset(strId_1);
+						reportStatus(res,"Search operation done successfully ","Search operation fail ");
+						searchPg.fullViewAssetDetailPage();
+						searchPg.AssetDetals("Custodian", strCustodian);
+						searchPg.AssetDetals("Location", strLocation);
+						 attachScreenshot(Status.INFO, "info");
+						
+				  }else {
+					  reportStatus(false,"Search page ","unable to navigate to search screen");
+				  }
+				 
+				}else {
+					reportStatus(false,"Asset detial  ","Fail to set Asset detial Full screen view");
+				}
+				res = searchPg.clickOnBackButton();
+				reportStatus(res,"Successfull Navigated to Home Page..","Failed to Navigate home page");
+			}
+		} catch (Exception e) {
+			reportStatus(false,"Search Asset Tect case failed to Initiate..","Search Asset");
+		e.printStackTrace();
+	}
+}
+
+
+	
+	@Test(dataProvider="Assign", dataProviderClass = Phase_4_Tests.class)
+	public void Test03_AssignAsset(HashMap<String, String> inpDetails,ITestContext testContext) throws Throwable {
+		boolean res = false;	
+		// Read Test Data 
+		String strId_1 = inpDetails.get("ItemID-1").trim();
+		String strId_2 = inpDetails.get("ItemID-2").trim();
+		
+		
+	
+	
+		homePage = new HomePage(this.appActionEngine);
+		try {		
+		//homePage.RefreshHomePageElements();
+		if (homePage.waitForPage()) {
+			reportStatus(true,"Successfully Logged in to Mobile Home Page","Home page"); 
+			
+			homePage.fullViewHomeScreen();
+			res = homePage.clickHomeIcon("Assign Asset");
+			reportStatus(res,"Successfully Clicked On Assign ICon On Mobile-HomePage ","failed to click on Assign Icon On-Mobile HomePage");
+			Assignpg = new AssignPage(this.appActionEngine);
+			
+			if (Assignpg.waitForPage()) {
+				reportStatus(true,"verified Successfully-1.	The Assign Asset screen loads in barcode mode automatically with the cursor flashing in the Item ID box ","Assign  Screen"); 
+				
+				// Change Scanning Mode to RFID
+				Assignpg.selectModeOfScan("RfidMode");
+				
+				  Assignpg.EnterTextOnEditAssigneeScreen ("scanEditText", strId_1, false);
+				  Assignpg.ClickOnSearchIconAssignee("scanEditText");
+				  reportStatus(res,"Successfully Clicked On Search icon ","failed to click on Assignee search icon");
+				 
+				  // Verify Scanned Results and Remove
+				  Thread.sleep(1000);
+				  attachScreenshot(Status.INFO, "info");
+				  Assignpg.verifySearchedResults(strId_1+"/", true);
+				  
+				  Assignpg.EnterTextOnEditAssigneeScreen ("scanEditText", strId_2, false);
+				  Assignpg.ClickOnSearchIconAssignee("scanEditText");
+				  reportStatus(res,"Successfully Clicked On Search icon ","failed to click on Assignee search icon");
+				  // Verify Scanned Results and Remove
+				  Thread.sleep(1000);
+				  attachScreenshot(Status.INFO, "info");
+				  Assignpg.verifySearchedResults(strId_2+"/", true);
+				  
+				  Assignpg.EnterTextOnEditAssigneeScreen ("scanEditText", strId_2, false);
+				  Assignpg.ClickOnSearchIconAssignee("scanEditText");
+				  reportStatus(res,"Successfully Clicked On Search icon ","failed to click on Assignee search icon");
+				  Thread.sleep(1000);
+				  // Verify Scanned Results and Remove
+				  Assignpg.verifySearchedResults(strId_2+"/", false);
+				  
+				  // click on assign
+				  Assignpg.clickOnAssign();
+				  // Verify error Message
+				  Assignpg.VerifyErrorsOnAssigneeScreen("You should provide a Location or a Custodian");
+			      //Navigate to home screen
+				  searchPg = new SearchPage(this.appActionEngine);
+				  searchPg.clickOnBackButton();
+				  reportStatus(true,"Successfully clicked on back button","Fail to click back button");
+				  Thread.sleep(2000);
+				   // Accept alert
+				  this.appActionEngine.driver.switchTo().alert().accept();
+				  reportStatus(true,"Successfully accepted Alert exit","Fail to accept alert exit");
+				  // Verify Home page Loaded or not
+				  reportStatus(  homePage.waitForPage(),"Successfully Redired to home Screen","Fail to Navigate to home screen");
+				  attachScreenshot(Status.INFO, "info");
+				
+				}else {
+					reportStatus(false,"Asset detial  ","Fail to set Asset detial Full screen view");
+				}
+		   }		
+		} catch (Exception e) {
+			reportStatus(false,"Search Asset Tect case failed to Initiate..","Search Asset");
+		e.printStackTrace();
+	}
+}
+
+
+	
+	
+
+
+
+
+
+}

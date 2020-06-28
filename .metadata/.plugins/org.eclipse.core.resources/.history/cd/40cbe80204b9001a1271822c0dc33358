@@ -1,0 +1,572 @@
+package amazon.core.accelerators;
+
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.UnsupportedEncodingException;
+import java.net.URISyntaxException;
+import java.text.SimpleDateFormat;
+import java.util.Base64;
+import java.util.Date;
+import java.util.Iterator;
+import java.util.Map;
+
+import org.apache.commons.io.IOUtils;
+import org.apache.http.HttpEntity;
+import org.apache.http.HttpHeaders;
+import org.apache.http.HttpResponse;
+import org.apache.http.HttpStatus;
+import org.apache.http.client.ClientProtocolException;
+import org.apache.http.client.HttpClient;
+import org.apache.http.client.methods.HttpDelete;
+import org.apache.http.client.methods.HttpGet;
+import org.apache.http.client.methods.HttpPost;
+import org.apache.http.client.methods.HttpPut;
+import org.apache.http.client.methods.HttpTrace;
+import org.apache.http.client.utils.URIBuilder;
+import org.apache.http.entity.ContentType;
+import org.apache.http.entity.StringEntity;
+import org.apache.http.entity.mime.HttpMultipartMode;
+import org.apache.http.entity.mime.MultipartEntityBuilder;
+import org.apache.http.entity.mime.content.FileBody;
+import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.http.impl.client.HttpClientBuilder;
+import org.apache.tools.ant.taskdefs.condition.Http;
+
+import a2b.core.logs.LogManager;
+import amazon.config.gblConstants;
+
+/**
+ * The Class RestAccelerators.
+ */
+public class RestAccelerator {
+
+	public CloseableHttpClient httpClient;
+	
+	private String className = RestAccelerator.class.getName();	
+	/*
+	 * Close HttpClient Connection
+	 */
+	private void closeHttpClient() {
+		try {
+			httpClient.close();
+		} catch (IOException e) {
+			LogManager.logException(e, className, "Exception to close HtttpClient");
+			e.printStackTrace();
+		}
+	}
+	
+	/**
+	 * Htttp post TXT.
+	 * @param EndpointURI
+	 *            the endpoint uri
+	 * @param Request
+	 *            the request
+	 * @return the http response
+	 */
+	public String httpPost(String endPointURI, Map<String, String> headers, String payLoad) {
+		String response = null;
+		
+		try {
+			//Create HttpConnection
+			httpClient = HttpClientBuilder.create().build();
+
+			//Initialize HttpPost
+			HttpPost request = new HttpPost(endPointURI);
+			
+			//Add headers
+			for(Map.Entry<String, String> header: headers.entrySet()) {
+				request.addHeader(header.getKey(), header.getValue());
+			}
+			
+			//Add Payload
+			StringEntity RequestEntity;
+			RequestEntity = new StringEntity(payLoad);			
+			request.setEntity(RequestEntity);
+			
+			//Execute delete method and get response
+			HttpResponse objResponse = httpClient.execute(request);
+
+			response = getJsonResponseString(objResponse);
+			
+		} catch (UnsupportedEncodingException e) {
+			LogManager.logException(e, className, "Exception while posting the http Post ::" + e.getMessage());
+		} catch (ClientProtocolException e) {
+			LogManager.logException(e, className, "Exception while posting the http Post ::" + e.getMessage());
+		} catch (IOException e) {
+			LogManager.logException(e, className, "Exception while posting the http Post ::" + e.getMessage());
+		}finally {
+			closeHttpClient();
+		}
+		return response;
+	}
+
+	/**
+	 * Htttp post TXT.
+	 * @param EndpointURI
+	 *            the endpoint uri
+	 * @param Request
+	 *            the request
+	 * @return the http response
+	 */
+	public String httpPost(String endPointURI, Map<String, String> headers, Map<String, String> uriParams, String payLoad) {
+		String response = null;
+		
+		try {
+			//Create HttpConnection
+			httpClient = HttpClientBuilder.create().build();
+			
+			//Initialize HttpPost & append uri parameters
+			HttpPost request = new HttpPost(endPointURI);
+			URIBuilder uriBuilder = new URIBuilder(endPointURI);
+			for(Map.Entry<String, String> param:uriParams.entrySet()) {
+				uriBuilder.addParameter(param.getKey(), param.getValue());
+			}
+			request.setURI(uriBuilder.build());
+			
+			//Add headers
+			for(Map.Entry<String, String> header: headers.entrySet()) {
+				request.addHeader(header.getKey(), header.getValue());
+			}
+			
+			//Add Payload
+			StringEntity RequestEntity;
+			RequestEntity = new StringEntity(payLoad);			
+			request.setEntity(RequestEntity);
+			
+			//Execute delete method and get response
+			HttpResponse objResponse = httpClient.execute(request);
+			
+			response = getJsonResponseString(objResponse);
+		} catch (UnsupportedEncodingException e) {
+			LogManager.logException(e, className, "Exception while posting the http Post ::" + e.getMessage());
+		} catch (ClientProtocolException e) {
+			LogManager.logException(e, className, "Exception while posting the http Post ::" + e.getMessage());
+		} catch (IOException e) {
+			LogManager.logException(e, className, "Exception while posting the http Post ::" + e.getMessage());
+		} catch (URISyntaxException e) {
+			LogManager.logException(e, className, "Exception while posting the http Post ::" + e.getMessage());
+			e.printStackTrace();
+		}finally {
+			closeHttpClient();
+		}
+		return response;
+	}
+	
+	/**
+	 * Htttp delete json.
+	 *
+	 * @param EndpointURI
+	 *            the endpoint uri
+	 * @param Request
+	 *            the request
+	 * @return the http response
+	 */
+	public String httpDelete(String endPointURI, Map<String, String> headers, String payLoad) {
+		String response = null;
+		try {
+			//Create HttpClient connection
+			HttpClient httpClient = HttpClientBuilder.create().build();
+			
+			//Initialize HttpDelete
+			HttpDelete request = new HttpDelete(endPointURI);
+			
+			//Add headers
+			for(Map.Entry<String, String> header: headers.entrySet()) {
+				request.addHeader(header.getKey(), header.getValue());
+			}
+			
+			//Update payload
+			StringEntity RequestEntity;
+			RequestEntity = new StringEntity(payLoad);
+
+			//Execute delete method and get response
+			HttpResponse objResponse = httpClient.execute(request);			
+			response=  getJsonResponseString(objResponse);
+		} catch (UnsupportedEncodingException e) {
+			LogManager.logException(e, className, "Exception while posting the http Delete ::" + e.getMessage());
+		} catch (ClientProtocolException e) {
+			LogManager.logException(e, className, "Exception while posting the http Delete ::" + e.getMessage());
+		} catch (IOException e) {
+			LogManager.logException(e, className, "Exception while posting the http Delete ::" + e.getMessage());
+		}finally {
+			closeHttpClient();
+		}
+		return response;
+	}
+
+	/**
+	 * Htttp trace json.
+	 *
+	 * @param EndpointURI
+	 *            the endpoint uri
+	 * @param Request
+	 *            the request
+	 * @return the http response
+	 */
+	public String httpTrace(String endPointURI, Map<String, String> headers, String payLoad) {
+		String response = null;
+		try {
+			//Create HttpClient connection			
+			HttpClient httpClient = HttpClientBuilder.create().build();
+			
+			//Initialize HttpTrace
+			HttpTrace request = new HttpTrace(endPointURI);
+			
+			//Add headers
+			for(Map.Entry<String, String> header: headers.entrySet()) {
+				request.addHeader(header.getKey(), header.getValue());
+			}
+
+			//Add payload
+			StringEntity RequestEntity;
+			RequestEntity = new StringEntity(payLoad);
+
+			//Execute method and capture response
+			HttpResponse objResponse = httpClient.execute(request);
+			response = getJsonResponseString(objResponse);
+		} catch (UnsupportedEncodingException e) {
+			LogManager.logException(e, className, "Exception while posting the http Trace ::" + e.getMessage());
+		} catch (ClientProtocolException e) {
+			LogManager.logException(e, className, "Exception while posting the http Trace ::" + e.getMessage());
+		} catch (IOException e) {
+			LogManager.logException(e, className, "Exception while posting the http Trace ::" + e.getMessage());
+		}finally {
+			closeHttpClient();
+		}
+		return response;
+	}
+
+	/**
+	 * Htttp get.
+	 * @param EndpointURI
+	 *            the endpoint uri
+	 * @return the http response
+	 */
+	public String httpGet(String endPointURI, Map<String, String> headers) {
+		String response = null;
+		try {
+			//Creat HttpClient connection
+			HttpClient httpClient = HttpClientBuilder.create().build();
+			
+			//Initialize HttpGet
+			HttpGet request = new HttpGet(endPointURI);
+			
+			//Add headers
+			for(Map.Entry<String, String> header: headers.entrySet()) {
+				request.addHeader(header.getKey(), header.getValue());
+			}
+			
+			//Execute method and get response
+			HttpResponse objResponse = httpClient.execute(request);
+			response = getJsonResponseString(objResponse);
+		} catch (UnsupportedEncodingException e) {
+			LogManager.logException(e, className, "Exception while sending the http Get request ::" + e.getMessage());
+		} catch (ClientProtocolException e) {
+			LogManager.logException(e, className, "Exception while sending the http Get request ::" + e.getMessage());
+		} catch (IOException e) {
+			LogManager.logException(e, className, "Exception while sending the http Get request ::" + e.getMessage());
+		}finally {
+			closeHttpClient();
+		}
+		return response;
+	}
+	
+	/**
+	 * Htttp get.
+	 * @param EndpointURI
+	 *            the endpoint uri
+	 * @return the http response
+	 */
+	public String httpGet(String endPointURI, Map<String, String> headers, Map<String, String> queryParams) {
+		String response = null;
+		try {
+			//Creat HttpClient connection
+			HttpClient httpClient = HttpClientBuilder.create().build();
+			
+			//Initialize HttpGet
+			HttpGet request = new HttpGet(endPointURI);
+			URIBuilder uriBuilder = new URIBuilder(endPointURI);
+			for(Map.Entry<String, String> param:queryParams.entrySet()) {				
+				uriBuilder.addParameter(param.getKey(), param.getValue());
+			}
+			request.setURI(uriBuilder.build());
+			
+			//Add headers
+			for(Map.Entry<String, String> header: headers.entrySet()) {
+				request.addHeader(header.getKey(), header.getValue());
+			}
+			
+			//Execute method and get response
+			HttpResponse objResponse = httpClient.execute(request);
+			response = getJsonResponseString(objResponse);
+			
+		} catch (UnsupportedEncodingException e) {
+			LogManager.logException(e, className, "Exception while sending the http Post request ::" + e.getMessage());
+		} catch (ClientProtocolException e) {
+			LogManager.logException(e, className, "Exception while sending the http Post request ::" + e.getMessage());
+		} catch (IOException e) {
+			LogManager.logException(e, className, "Exception while sending the http Post request ::" + e.getMessage());
+		} catch (URISyntaxException e) {
+			LogManager.logException(e, className, "Exception while sending the http Post request ::" + e.getMessage());
+			e.printStackTrace();
+		}finally {
+			closeHttpClient();
+		}
+		return response;
+	}	
+
+	//byte[] authStringEnc = Base64.getEncoder().encode(authString.getBytes());
+	
+	/**
+	 * Htttp put json.
+	 *
+	 * @param EndpointURI
+	 *            the endpoint uri
+	 * @param Request
+	 *            the request
+	 * @return the http response
+	 */
+	public String httpPut(String endPointURI, Map<String, String> headers, String payLoad) {
+		String response = null;
+		try {
+			//Create HttpClient connection 
+			HttpClient httpClient = HttpClientBuilder.create().build();
+			
+			//Initialize HttpPut
+			HttpPut request = new HttpPut(endPointURI);
+			for(Map.Entry<String, String> header:headers.entrySet()) {
+				request.addHeader(header.getKey(), header.getValue());
+			}
+			
+			//Add payLoad
+			StringEntity RequestEntity;
+			RequestEntity = new StringEntity(payLoad);
+			request.setEntity(RequestEntity);
+			HttpResponse objResponse = httpClient.execute(request);
+			response = getJsonResponseString(objResponse);
+			
+		} catch (UnsupportedEncodingException e) {
+			LogManager.logException(e, className, "Exception while sending the http Put request ::" + e.getMessage());
+		} catch (ClientProtocolException e) {
+			LogManager.logException(e, className, "Exception while sending the http Put request ::" + e.getMessage());
+		} catch (IOException e) {
+			LogManager.logException(e, className, "Exception while sending the http Put request ::" + e.getMessage());
+		}finally {
+			closeHttpClient();
+		}
+		return response;
+	}
+
+	/**
+	 * Htttp post for file Upload.
+	 *
+	 * @param EndpointURI
+	 *            the endpoint uri
+	 * @param Request
+	 *            the request
+	 * @return the http response
+	 */
+	public String httpPostJSON_FileUpload(String EndpointURI, Map<String, String> headers, String UploadFilePath) {
+		String response = null;
+		try {
+			//Create HttpClient connection
+			HttpClient httpClient = HttpClientBuilder.create().build();
+			
+			
+			//Initialize HttpPost and add headers
+			HttpPost request = new HttpPost(EndpointURI);
+			for(Map.Entry<String, String> header:headers.entrySet()) {
+				request.addHeader(header.getKey(), header.getValue());
+			}
+
+			// Uploading Multipart Entity File			
+			File fileToUpload = new File(UploadFilePath);		
+			FileBody fileBody = new FileBody(fileToUpload, ContentType.APPLICATION_OCTET_STREAM);			
+			MultipartEntityBuilder builder = MultipartEntityBuilder.create()
+													.setMode(HttpMultipartMode.BROWSER_COMPATIBLE)
+													.addPart("file"+fileToUpload.getName(), fileBody);
+			HttpEntity entity = builder.build();
+			
+			// Setting the entity file			
+			request.setEntity(entity);
+			System.out.println(request);
+
+			// Executing the request
+			HttpResponse objResponse = httpClient.execute(request);
+			response = getJsonResponseString(objResponse);
+			System.out.println(response);
+		} catch (UnsupportedEncodingException e) {
+			LogManager.logException(e, className, "Exception while posting the http Post ::" + e.getMessage());
+		} catch (ClientProtocolException e) {
+			LogManager.logException(e, className, "Exception while posting the http Post ::" + e.getMessage());
+		} catch (IOException e) {
+			LogManager.logException(e, className, "Exception while posting the http Post ::" + e.getMessage());
+		}finally {
+			closeHttpClient();
+		}
+		return response;
+	}
+
+	/**
+	 * Gets the json response string.
+	 *
+	 * @param response
+	 *            the response
+	 * @return the json response string
+	 */
+	public String getJsonResponseString(HttpResponse response) {
+		String ResponseString = null;
+		try {
+			//Capture response from HttpResponse 
+			StringBuilder JsonResponse = new StringBuilder();
+			BufferedReader reader;
+			reader = new BufferedReader(new InputStreamReader(response.getEntity().getContent()));
+			String line = null;
+			while ((line = reader.readLine()) != null) {
+				JsonResponse.append(line);
+			}
+			
+			//check response is 2xx of Success status 
+			if (response.getStatusLine().getStatusCode() == HttpStatus.SC_OK ||
+					response.getStatusLine().getStatusCode() == HttpStatus.SC_CREATED ||
+					response.getStatusLine().getStatusCode() == HttpStatus.SC_ACCEPTED ||
+					response.getStatusLine().getStatusCode() == HttpStatus.SC_NON_AUTHORITATIVE_INFORMATION ||
+					response.getStatusLine().getStatusCode() == HttpStatus.SC_NO_CONTENT ||
+					response.getStatusLine().getStatusCode() == HttpStatus.SC_RESET_CONTENT ||
+					response.getStatusLine().getStatusCode() == HttpStatus.SC_PARTIAL_CONTENT ) {
+				ResponseString = JsonResponse.toString();
+			}else {
+				ResponseString = "{ \"error\" : \"Received non success response status code - " + response.getStatusLine().getStatusCode() + "\"" +
+								 "{ \"message\" " + JsonResponse.toString() + "}";
+			}
+		} catch (IOException e) {
+			LogManager.logException(e, className, "Exception while get JSON String from response ::" + e.getMessage());
+		}
+
+		return ResponseString;
+	}
+	
+	/**
+	 * Gets the json string.
+	 *
+	 * @param filepath
+	 *            the filepath
+	 * @param properties
+	 *            the properties
+	 * @return the json string
+	 */
+	public String getJsonString(String filepath, Map properties) {
+
+		String Filedata = null;
+		try {
+			Filedata = IOUtils.toString(new FileInputStream(new File(filepath)), "UTF-8");
+			Iterator it = properties.entrySet().iterator();
+			while (it.hasNext()) {
+				Map.Entry pair = (Map.Entry) it.next();
+				String key = (String) pair.getKey();
+				String value = (String) pair.getValue();
+				String[] values = value.split("::");
+				for (int i = 0; i < values.length; i++) {
+					Filedata = Filedata.replaceFirst(key, values[i]);
+				}
+				it.remove(); // avoids a ConcurrentModificationException
+			}
+		} catch (FileNotFoundException e) {
+			LogManager.logException(e, className, "Exception while creating JSON request ::" + e.getMessage());
+		} catch (IOException e) {
+			LogManager.logException(e, className, "Exception while creating JSON request ::" + e.getMessage());
+		}
+		return Filedata;
+	}	
+	
+	protected void saveAPILogs(String logName, String logContent) {
+		try {
+			logName = logName + new SimpleDateFormat("_MM_dd_yyyy_HH_mm_ss_SSS").format(new Date()) + ".txt";			
+			String folPath = gblConstants.reportsPath + File.separator + gblConstants.apiLogsDirName;
+			File logFile = new File(folPath + File.separator + logName);
+			
+			if(! new File(folPath).exists()) {
+				new File(folPath).mkdirs();
+			}	
+			BufferedWriter logWriter;
+			logWriter = new BufferedWriter(new FileWriter(logFile));
+			logWriter.write(logContent);
+			logWriter.close();
+
+		}catch(IOException io) {
+			io.printStackTrace();
+			LogManager.logException(io, RestAccelerator.class.getName(), "Exception to save api log " + logName);
+		}
+	}
+
+/*	
+	/**
+	 * Validate json schema.
+	 *
+	 * @param JsonSchemaFile
+	 *            the json schema file
+	 * @param JsonFile
+	 *            the json file
+	 * @return true, if successful
+	 * @throws ProcessingException
+	 *             the processing exception
+	 * @throws IOException
+	 *             Signals that an I/O exception has occurred.
+	 *//*
+	public boolean validateJSONSchema(File JsonSchemaFile, File JsonFile) throws ProcessingException, IOException {
+		boolean status = false;
+		if (ValidationUtils.isJsonValid(JsonSchemaFile, JsonFile)) {
+			status = true;
+		}
+		return status;
+	}
+
+	*//**
+	 * Validate json schema.
+	 *
+	 * @param JsonSchema
+	 *            the json schema
+	 * @param JSon
+	 *            the j son
+	 * @return true, if successful
+	 * @throws ProcessingException
+	 *             the processing exception
+	 * @throws IOException
+	 *             Signals that an I/O exception has occurred.
+	 *//*
+	public boolean validateJSONSchema(String JsonSchema, String JSon) throws ProcessingException, IOException {
+		boolean status = false;
+		if (ValidationUtils.isJsonValid(JsonSchema, JSon)) {
+			status = true;
+		}
+		return status;
+	}
+	*/
+	
+/*	public static String getStatus(String url) throws IOException {
+		 
+        String result = "";
+        try {
+            URL siteURL = new URL(url);
+            HttpURLConnection connection = (HttpURLConnection) siteURL
+                    .openConnection();
+            connection.setRequestMethod("GET");
+            connection.connect();
+ 
+            int code = connection.getResponseCode();
+            if (code == 200) {
+                result = "Green";
+            }
+        } catch (Exception e) {
+            result = "->Red<-";
+        }
+        return result;
+    }*/
+
+}

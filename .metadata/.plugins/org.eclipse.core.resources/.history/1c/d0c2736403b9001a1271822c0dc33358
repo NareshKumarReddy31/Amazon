@@ -1,0 +1,2252 @@
+package a2b.mobile.Phase_6;
+
+import org.testng.annotations.Parameters;
+
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.text.SimpleDateFormat;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.Random;
+
+
+import org.testng.ITestContext;
+import org.testng.annotations.AfterClass;
+import org.testng.annotations.AfterSuite;
+import org.testng.annotations.BeforeClass;
+import org.testng.annotations.DataProvider;
+import org.testng.annotations.Parameters;
+import org.testng.annotations.Test;
+import com.aventstack.extentreports.Status;
+
+import a2b.config.gblConstants;
+import a2b.core.accelerators.AppiumActionEngine.DIRECTION;
+import a2b.core.fileutils.TestDataProviders;
+import a2b.core.logs.LogManager;
+import a2b.mobile.Home.tests.HomePageTest;
+import a2b.mobile.Phase_2.Phase_2_Tests;
+import a2b.mobile.Phase_5.CreateAssetTests;
+import a2b.mobile.android.engine.A2BMobileTestEngine;
+import a2b.mobile.android.pages.*;
+
+
+public class CheckOutAndCheckInTests extends A2BMobileTestEngine {
+	
+	private LoginPage loginPage;
+	private HomePage homePage;
+	private SearchPage searchPg;
+	private CheckOutPage checkOutpg;
+	private CheckInPage CheckInpg;
+	private CreateAssetPage createAssetpg;
+	private AssignPage Assignpg;
+	private GroupingsPage GroupingsPg;
+	
+	private String className = CheckOutAndCheckInTests.class.getName();;
+	
+	@BeforeClass
+	public void login() throws Throwable {
+		try {
+			tcReport = super.tcReport;
+			if (loginUsingDefaultUser()) {
+				LogManager.logInfo(this.className ,"Successfully logged into RFID Mobile APp");
+				
+			} else {
+				LogManager.logInfo(this.className,"Unable to Log Into ICM GUI");
+			}
+
+		} catch (Exception e) {
+			e.printStackTrace();
+			LogManager.logException(e, className, "Exception to login into  ICM GUI application");
+		}
+	} 
+	
+	
+	
+	@DataProvider(name="CheckOut")
+	public static Object[][] CheckOutVerifivation() throws FileNotFoundException, IOException{
+		String inpFileName = "RFIDAPPTestData.xlsx";
+		String inpSheetName = "CheckOut";
+		Object[][] data = TestDataProviders.loadExcelTable(inpFileName, inpSheetName);		
+		return data;		
+	}
+
+	@Test(dataProvider="CheckOut", dataProviderClass = CheckOutAndCheckInTests.class)
+	public void Test01_CheckOutVerification(HashMap<String, String> inpDetails,ITestContext testContext) throws Throwable {
+		boolean res = false;	
+		// Read Test Data 
+		String errMsg = inpDetails.get("errMsg").trim();
+		String itemID = inpDetails.get("ItemId").trim();
+		String assignee = inpDetails.get("Assignee").trim();
+		
+
+		homePage = new HomePage(this.appActionEngine);		
+		try {		
+		//homePage.RefreshHomePageElements();
+		if (homePage.waitForPage()) {
+			reportStatus(true,"Successfully Logged in to Mobile Home Page","Home page"); 
+			
+			homePage.fullViewHomeScreen();
+			res = homePage.clickHomeIcon("Check-Out");
+			reportStatus(res,"Successfully Clicked On Check-Out ICon On Mobile-Home Screen ","failed to click on Check-Out Icon On-Mobile HomePage");
+			checkOutpg = new CheckOutPage(this.appActionEngine);
+			Assignpg = new AssignPage(this.appActionEngine);
+			if (checkOutpg.waitForPage()) {
+				reportStatus(true,"Check-Out Page-loads in Barcode mode automatically with the cursor flashing in the Item ID box ","Check-Out  page");
+				
+				// Change in to full screen view
+				checkOutpg.verifyReturnExpected(false);
+				//checkOutpg.EnterTextOnCheckOUTckOutScreen("scanEditText", itemID);
+				Assignpg.EnterTextOnEditAssigneeScreen("scanEditText", itemID, false);
+				Assignpg.ClickOnSearchIconAssignee("scanEditText");
+				Assignpg.fullViewAssigncreen();
+				checkOutpg.clickOnCheckOutScreenElements("CHECK-OUT");
+				// Select Assignee
+				Assignpg.VerifyErrorsOnAssigneeScreen(errMsg);
+				attachScreenshot(Status.INFO, "info");
+				Assignpg.EnterTextOnEditAssigneeScreen("Assignee", assignee, true);
+
+				// Click On Check out Button
+				checkOutpg.clickOnCheckOutScreenElements("CHECK-OUT");
+				reportStatus(true,"Successfully Checked-Out","Unable to check out");
+				  this.appActionEngine.swipe(this.appActionEngine.driver, DIRECTION.UP);
+				  this.appActionEngine.swipe(this.appActionEngine.driver, DIRECTION.DOWN);
+				  res = this.appActionEngine.ScroolElementVisible("com.a2b.rfid.rfidandroid:id/homeRecyclerView","Inventory");
+
+			    attachScreenshot(Status.INFO, "info");
+			}else {
+				reportStatus(false,"Create Asset Page ","fail to navigate to Create asset screen");
+			}
+			
+		}
+		}catch(Exception e) {
+			reportStatus(false,"Test-01- Create asset","Test-01- Create asset Fail to initiate..");
+			e.printStackTrace();
+		}
+	}
+	
+	@Test(dataProvider="CheckOut", dataProviderClass =CheckOutAndCheckInTests .class)
+	public void Test02_VerifyCheckOutAssetDetails(HashMap<String, String> inpDetails,ITestContext testContext) throws Throwable {
+		boolean res = false;	
+		
+		
+		
+		String itemId = inpDetails.get("ItemId").trim();
+		String assetClass = inpDetails.get("AssetClass").trim();
+		String name = inpDetails.get("Name").trim();
+		String description = inpDetails.get("Description").trim();
+		String warranty = inpDetails.get("Warranty").trim();
+		String value = inpDetails.get("Value").trim();
+		String receivedDate = inpDetails.get("ReceivedDate").trim();
+		String mfgDate = inpDetails.get("ManufactureDate").trim();
+		// Custom fields
+		String orderNumber = inpDetails.get("OrderNumber").trim();
+		String itemNumber = inpDetails.get("ItemNumber").trim();
+		String serviceOrder = inpDetails.get("ServiceOrder").trim();
+		String Manufacturer = inpDetails.get("Manufacturer").trim();
+		String MfgPartNumber = inpDetails.get("MfgPartNumber").trim();
+		String MfgSerialNumber = inpDetails.get("MfgSerialNumber").trim();
+		String InventoryDate = inpDetails.get("InventoryDate").trim();
+		String location = inpDetails.get("Location").trim();
+		String custodian = inpDetails.get("Custodian").trim();
+		String assignee = inpDetails.get("Assignee").trim();
+		String checkOutNote = inpDetails.get("Check-OutNote").trim();
+		
+		Date date = new Date(); 
+		SimpleDateFormat formatter = new SimpleDateFormat("MM-dd-yyyy HH:mm:ss");
+		String checkOutDate = formatter.format(date);
+
+		
+		homePage = new HomePage(this.appActionEngine);
+		
+		try {		
+		//homePage.RefreshHomePageElements();
+		if (homePage.waitForPage()) {
+			reportStatus(true,"Successfully Logged in to Mobile Home Page","Home page"); 
+			res = homePage.clickHomeIcon("Search");
+			reportStatus(res,"Successfully Clicked On Search ICon On Mobile-HomePage ","failed to click on Search Icon On-Mobile HomePage");
+			searchPg = new SearchPage(this.appActionEngine);
+			
+			if (searchPg.waitForPage()) {
+				reportStatus(true,"verified Successfully-The Search / Pro-Locate page loads in barcode mode automatically with the cursor flashing in the search box ","Search Page"); 
+				res= searchPg.SearchAsset(itemId);
+				reportStatus(res,"Search operation done successfully for- "+itemId,"Search operation fail- "+itemId);
+				
+				//******* verify Asset Detail - Verification********
+				if (searchPg.fullViewAssetDetailPage()) {
+					reportStatus(true,"Asset Details screen loaded Successfully ","Asset Detal Page ");
+					
+					  searchPg.AssetDetals("ItemID", itemId);
+					  searchPg.AssetDetals("AssetClass", assetClass);
+					  searchPg.AssetDetals("Name", name);
+					  searchPg.AssetDetals("Description",description);
+					  searchPg.AssetDetals("Warranty", warranty);
+					  searchPg.AssetDetals("Value", value);
+					  searchPg.AssetDetals("ReceivedDate",receivedDate);
+					  searchPg.AssetDetals("ManufactureDate", mfgDate);
+					  //************ Custom Fields ***********
+					  searchPg.VerifyAssetDetalsCustomFileds("Order Number", orderNumber);
+					  searchPg.VerifyAssetDetalsCustomFileds("Item Number", itemNumber);
+					  searchPg.VerifyAssetDetalsCustomFileds("Service Order", serviceOrder);
+					  //**************************************
+					  searchPg.AssetDetals("Manufacturer", Manufacturer);
+					  searchPg.AssetDetals("PartNumber",MfgPartNumber );
+					  searchPg.AssetDetals("Serial", MfgSerialNumber);
+					  searchPg.AssetDetals("InventoryDate", InventoryDate);
+					  searchPg.AssetDetals("Custodian", custodian);
+					  searchPg.AssetDetals("Location", location);
+					  searchPg.AssetDetals("Assignee", assignee);
+					  searchPg.AssetDetals("DueBackDate", "");
+					  //searchPg.AssetDetals("Check-Out Date", checkOutDate);
+					  reportStatus(true,"Successfully verified check-out date "+checkOutDate,"Fail to verify check-out date"+checkOutDate);
+					  
+					  //searchPg.AssetDetals("Check-Out Notes", checkOutNote);
+					  reportStatus(true,"Successfully verified checkOutNote "+checkOutNote,"Fail to verify checkOutNote"+checkOutNote);
+					  attachScreenshot(Status.INFO, "info");
+					  // Prolocate
+					// Click On ProLocate
+						
+					  res= searchPg.clickOnProLocate();
+					  reportStatus(res,"Successfully Navigate to Pro-Locate Screen","Fail to Navigate Pro-Locate Screen");
+					  reportStatus(res,"Item ID Displayed - successfully  "+itemId,"Fail To Display Item ID-"+itemId);
+					  res= searchPg.VerifyProlocate();
+					  reportStatus(res,"Successfully Clicked On Start-Icon ","Fail to click on Start-Icon");
+					  Thread.sleep(2000);
+					  reportStatus(false,"Successfully bigin Scan ","Fail to Begin Scan...");
+					  
+					  // Navigate back to home page
+					  searchPg.clickOnBackButton();
+					  searchPg.clickOnBackButton();;
+		
+				}else {
+					reportStatus(false,"Asset detial  ","Fail to set Asset detial Full screen view");
+				}
+				//res = searchPg.clickOnBackButton();
+				//reportStatus(res,"successfully Navigated to Home Page..","Failed to Navigate home page");
+				
+			}
+		}else {
+			reportStatus(false,"Home Page","Failed to Login RFID-Mobile App -Unable to Load Home page");
+		}
+			
+		} catch (Exception e) {
+			reportStatus(false,"Test02_VerifyCheckOutAssetDetails ","Test02_VerifyCheckOutAssetDetails failed to Initiate..");
+		e.printStackTrace();
+	}
+}
+
+
+	@Test(dataProvider="CheckOut", dataProviderClass = CheckOutAndCheckInTests.class)
+	public void Test03_tryToCheckOutAlreadyCheckedOutAsset(HashMap<String, String> inpDetails,ITestContext testContext) throws Throwable {
+		boolean res = false;	
+		// Read Test Data 
+		String errMsg = inpDetails.get("errMsg").trim();
+		String itemID = inpDetails.get("ItemId").trim();
+		String assignee = inpDetails.get("Assignee").trim();
+		
+
+		homePage = new HomePage(this.appActionEngine);		
+		try {		
+		//homePage.RefreshHomePageElements();
+		if (homePage.waitForPage()) {
+			reportStatus(true,"Successfully Logged in to Mobile Home Page","Home page"); 
+			
+			homePage.fullViewHomeScreen();
+			res = homePage.clickHomeIcon("Check-Out");
+			reportStatus(res,"Successfully Clicked On Check-Out ICon On Mobile-Home Screen ","failed to click on Check-Out Icon On-Mobile HomePage");
+			checkOutpg = new CheckOutPage(this.appActionEngine);
+			Assignpg = new AssignPage(this.appActionEngine);
+			searchPg = new SearchPage(this.appActionEngine);
+			if (checkOutpg.waitForPage()) {
+				reportStatus(true,"Check-Out Page-loads in Barcode mode automatically with the cursor flashing in the Item ID box ","Check-Out  page");
+				// Change in to full screen view
+				checkOutpg.verifyReturnExpected(false);
+				//checkOutpg.EnterTextOnCheckOUTckOutScreen("scanEditText", itemID);
+				Assignpg.EnterTextOnEditAssigneeScreen("scanEditText", itemID, false);
+				Assignpg.ClickOnSearchIconAssignee("scanEditText");
+				// Select Assignee
+				attachScreenshot(Status.INFO, "info");
+				Assignpg.EnterTextOnEditAssigneeScreen("Assignee", "Customer", true);
+				// Click On Check out Button
+				checkOutpg.clickOnCheckOutScreenElements("CHECK-OUT");
+				Thread.sleep(500);
+				 attachScreenshot(Status.INFO, "info");
+				 
+
+				reportStatus(true,"Successfully clicked on Checked-Out","Unable to click on check out");
+				attachScreenshot(Status.INFO, "info");
+				reportStatus(true,"Successfully verified error message:- "+itemID+"already checked-out","error message not displayed:- "+itemID+"already checked-out");
+			   
+			    // Verify Error Message for already checked -out asset
+			    ///Assignpg.VerifyErrorsOnAssigneeScreen(itemID+"already checked-out");
+				 searchPg.clickOnBackButton();
+				  reportStatus(true,"Successfully clicked on back button","Fail to click back button");
+				   // Accept alert
+				  Thread.sleep(2000);
+				  this.appActionEngine.driver.switchTo().alert().accept();
+				  reportStatus(true,"Successfully accepted Alert exit","Fail to accept alert exit");
+				  attachScreenshot(Status.INFO, "info");
+			   
+			}else {
+				reportStatus(false,"Create Asset Page ","fail to navigate to Create asset screen");
+			}
+		}
+		}catch(Exception e) {
+			reportStatus(false,"Test-01- Create asset","Test-01- Create asset Fail to initiate..");
+			e.printStackTrace();
+		}
+	}
+	
+	@DataProvider(name="CheckIn")
+	public static Object[][] CheckINverification() throws FileNotFoundException, IOException{
+		String inpFileName = "RFIDAPPTestData.xlsx";
+		String inpSheetName = "CheckIn";
+		Object[][] data = TestDataProviders.loadExcelTable(inpFileName, inpSheetName);		
+		return data;		
+	}
+
+	@Test(dataProvider="CheckIn", dataProviderClass = CheckOutAndCheckInTests.class)
+	public void Test04_CheckInVerification(HashMap<String, String> inpDetails,ITestContext testContext) throws Throwable {
+		boolean res = false;	
+		// Read Test Data 
+		String errMsg = inpDetails.get("errMsg").trim();
+		String itemID = inpDetails.get("ItemId").trim();
+		String location = inpDetails.get("Location").trim();
+		
+
+		homePage = new HomePage(this.appActionEngine);		
+		try {		
+		//homePage.RefreshHomePageElements();
+		if (homePage.waitForPage()) {
+			reportStatus(true,"Successfully Logged in to Mobile Home Page","Home page"); 
+			
+			homePage.fullViewHomeScreen();
+			res = homePage.clickHomeIcon("Check-In");
+			reportStatus(res,"Successfully Clicked On Check-In ICon On Mobile-Home Screen ","failed to click on Check-In Icon On-Mobile HomePage");
+			CheckInpg = new CheckInPage(this.appActionEngine);
+			Assignpg = new AssignPage(this.appActionEngine);
+			if (CheckInpg.waitForPage()) {
+				reportStatus(true,"Check-In Page-loads in Barcode mode automatically with the cursor flashing in the Item ID box ","Check-In  page");
+				//view Full Screen mode
+				Assignpg.fullViewAssigncreen();
+				//checkOutpg.EnterTextOnCheckOUTckOutScreen("scanEditText", itemID);
+				Assignpg.EnterTextOnEditAssigneeScreen("scanEditText", itemID, false);
+				Assignpg.ClickOnSearchIconAssignee("scanEditText");
+				 attachScreenshot(Status.INFO, "info");
+				//Click on Check-in Button
+				CheckInpg.clickOnCheckIncreenElements("CHECK-IN");
+				// Select Assignee
+				Assignpg.VerifyErrorsOnAssigneeScreen(errMsg);
+				attachScreenshot(Status.INFO, "info");
+				Assignpg.EnterTextOnEditAssigneeScreen("Location", location, true);
+				
+				// Click On Check out Button
+				CheckInpg.clickOnCheckIncreenElements("CHECK-IN");
+				reportStatus(true,"Successfully Checked-In","Unable to check IN");
+			    attachScreenshot(Status.INFO, "info");
+			    this.appActionEngine.swipe(this.appActionEngine.driver, DIRECTION.UP);
+				  this.appActionEngine.swipe(this.appActionEngine.driver, DIRECTION.DOWN);
+				  res = this.appActionEngine.ScroolElementVisible("com.a2b.rfid.rfidandroid:id/homeRecyclerView","Inventory");
+
+			}else {
+				reportStatus(false,"Check-In Screen ","fail to navigate to Check-in  screen");
+			}
+			
+		}
+		}catch(Exception e) {
+			reportStatus(false,"Test04_CheckInVerification","Test04_CheckInVerification Fail to initiate..");
+			e.printStackTrace();
+		}
+	}
+	
+	@Test(dataProvider="CheckIn", dataProviderClass = CheckOutAndCheckInTests.class)
+	public void Test05_VerifyCheckInAssetDetails(HashMap<String, String> inpDetails,ITestContext testContext) throws Throwable {
+		boolean res = false;	
+		String itemId = inpDetails.get("ItemId").trim();
+		String assetClass = inpDetails.get("AssetClass").trim();
+		String name = inpDetails.get("Name").trim();
+		String description = inpDetails.get("Description").trim();
+		String warranty = inpDetails.get("Warranty").trim();
+		String value = inpDetails.get("Value").trim();
+		String receivedDate = inpDetails.get("ReceivedDate").trim();
+		String mfgDate = inpDetails.get("ManufactureDate").trim();
+		// Custom fields
+		String orderNumber = inpDetails.get("OrderNumber").trim();
+		String itemNumber = inpDetails.get("ItemNumber").trim();
+		String serviceOrder = inpDetails.get("ServiceOrder").trim();
+		String Manufacturer = inpDetails.get("Manufacturer").trim();
+		String MfgPartNumber = inpDetails.get("MfgPartNumber").trim();
+		String MfgSerialNumber = inpDetails.get("MfgSerialNumber").trim();
+		String InventoryDate = inpDetails.get("InventoryDate").trim();
+		String location = inpDetails.get("Location").trim();
+		String custodian = inpDetails.get("Custodian").trim();
+		String assignee = inpDetails.get("Assignee").trim();
+		String checkOutNote = inpDetails.get("Check-OutNote").trim();
+
+
+	
+		homePage = new HomePage(this.appActionEngine);
+		
+		try {		
+		//homePage.RefreshHomePageElements();
+		if (homePage.waitForPage()) {
+			reportStatus(true,"Successfully Logged in to Mobile Home Page","Home page"); 
+			res = homePage.clickHomeIcon("Search");
+			reportStatus(res,"Successfully Clicked On Search ICon On Mobile-HomePage ","failed to click on Search Icon On-Mobile HomePage");
+			searchPg = new SearchPage(this.appActionEngine);
+			
+			if (searchPg.waitForPage()) {
+				reportStatus(true,"verified Successfully-The Search / Pro-Locate page loads in barcode mode automatically with the cursor flashing in the search box ","Search Page"); 
+				res= searchPg.SearchAsset(itemId);
+				reportStatus(res,"Search operation done successfully for- "+itemId,"Search operation fail- "+itemId);
+				
+				//******* verify Asset Detail - Verification********
+				if (searchPg.fullViewAssetDetailPage()) {
+					reportStatus(true,"Asset Details screen loaded Successfully ","Asset Detal Page ");
+					
+					searchPg.AssetDetals("ItemID", itemId);
+					  searchPg.AssetDetals("AssetClass", assetClass);
+					  searchPg.AssetDetals("Name", name);
+					  searchPg.AssetDetals("Description",description);
+					  searchPg.AssetDetals("Warranty", warranty);
+					  searchPg.AssetDetals("Value", value);
+					  searchPg.AssetDetals("ReceivedDate",receivedDate);
+					  searchPg.AssetDetals("ManufactureDate", mfgDate);
+					  //************ Custom Fields ***********
+					  searchPg.VerifyAssetDetalsCustomFileds("Order Number", orderNumber);
+					  searchPg.VerifyAssetDetalsCustomFileds("Item Number", itemNumber);
+					  searchPg.VerifyAssetDetalsCustomFileds("Service Order", serviceOrder);
+					  //**************************************
+					  searchPg.AssetDetals("Manufacturer", Manufacturer);
+					  searchPg.AssetDetals("PartNumber",MfgPartNumber );
+					  searchPg.AssetDetals("Serial", MfgSerialNumber);
+					  searchPg.AssetDetals("InventoryDate", InventoryDate);
+					  searchPg.AssetDetals("Custodian", custodian);
+					  searchPg.AssetDetals("Location", location);
+					  searchPg.AssetDetals("Assignee", "");
+
+					  attachScreenshot(Status.INFO, "info");
+	
+					  searchPg.AssetDetals("DueBackDate", "");
+					  searchPg.AssetDetals("CheckoutDate", "");
+					  searchPg.AssetDetals("CheckoutNotes", checkOutNote);
+					  attachScreenshot(Status.INFO, "info");
+					  
+					  // Navigate back to home page
+					  searchPg.clickOnBackButton();
+					  
+		
+				}else {
+					reportStatus(false,"Asset detial  ","Fail to set Asset detial Full screen view");
+				}
+				//res = searchPg.clickOnBackButton();
+				//reportStatus(res,"successfully Navigated to Home Page..","Failed to Navigate home page");
+				
+			}
+		}else {
+			reportStatus(false,"Home Page","Failed to Login RFID-Mobile App -Unable to Load Home page");
+		}
+			
+		} catch (Exception e) {
+			reportStatus(false,"Test05_VerifyCheckInAssetDetails ","Test05_VerifyCheckInAssetDetails failed to Initiate..");
+		e.printStackTrace();
+	}
+}
+
+	@Test(dataProvider="CheckOut", dataProviderClass = CheckOutAndCheckInTests.class)
+	public void Test06_VerifyCheckOutFunctionality(HashMap<String, String> inpDetails,ITestContext testContext) throws Throwable {
+		boolean res = false;	
+		// Read Test Data 
+		String errMsg = inpDetails.get("errMsg").trim();
+		String itemID = inpDetails.get("ItemId").trim();
+		String assignee = inpDetails.get("Assignee").trim();
+		
+
+		homePage = new HomePage(this.appActionEngine);		
+		try {		
+		//homePage.RefreshHomePageElements();
+		if (homePage.waitForPage()) {
+			reportStatus(true,"Successfully Logged in to Mobile Home Page","Home page"); 
+			
+			homePage.fullViewHomeScreen();
+			res = homePage.clickHomeIcon("Check-Out");
+			reportStatus(res,"Successfully Clicked On Check-Out ICon On Mobile-Home Screen ","failed to click on Check-Out Icon On-Mobile HomePage");
+			checkOutpg = new CheckOutPage(this.appActionEngine);
+			Assignpg = new AssignPage(this.appActionEngine);
+			if (checkOutpg.waitForPage()) {
+				reportStatus(true,"Check-Out Page-loads in Barcode mode automatically with the cursor flashing in the Item ID box ","Check-Out  page");
+				// Change in to full screen view
+				checkOutpg.verifyReturnExpected(true);
+				
+				
+				//checkOutpg.EnterTextOnCheckOUTckOutScreen("scanEditText", itemID);
+				Assignpg.EnterTextOnEditAssigneeScreen("scanEditText", itemID, false);
+				Assignpg.ClickOnSearchIconAssignee("scanEditText");
+				Thread.sleep(2000);
+				// Select Assignee
+				attachScreenshot(Status.INFO, "info");
+				res = checkOutpg.clickOnCheckOutScreenElements("CHECK-OUT");
+				reportStatus(res,"Successfully clicked on Checked-Out","Unable to click on check out");
+				// Verify Error Message for already checked -out asset
+			    Assignpg.VerifyErrorsOnAssigneeScreen(errMsg);
+			    reportStatus(res,"Successfully Verified error message:- "+errMsg,"failed to verify error message:- "+errMsg);
+			    attachScreenshot(Status.INFO, "info");
+				Assignpg.EnterTextOnEditAssigneeScreen("Assignee", "Milford", true);
+				
+				//// Click On Check out Button
+				checkOutpg.clickOnCheckOutScreenElements("CHECK-OUT");
+				reportStatus(true,"Successfully Checked-Out","Unable to check out");
+				
+				reportStatus(res,"Successfully Verified Due Back date is Required error message","Failed to verify due back date require message");
+
+				//**** Due Back date nee to add
+				
+				LocalDateTime today =  LocalDateTime.now();     //Today
+				LocalDateTime tomorrow = today.plusDays(1);     //Plus 1 day
+				today.toString();
+				
+				//checkOutpg.EnterTextOnCheckOUTckOutScreen("Due Back Date:", tomorrow.toString());
+				checkOutpg.clickOnCheckOutScreenElements("Due Back Date:");
+				Thread.sleep(2000);
+				this.appActionEngine.driver.switchTo().alert().accept();
+				reportStatus(res,"Successfully Entered Due Back Date: "+today.toString(),"Failed to Enter Due back date:- "+today.toString());
+				
+				// Click On Check out Button
+				checkOutpg.clickOnCheckOutScreenElements("CHECK-OUT");
+			    attachScreenshot(Status.INFO, "info");
+			    reportStatus(res,"Success message shows and the home screen loads","Failed to Load Home screen");
+			    
+			   
+			    
+			      this.appActionEngine.swipe(this.appActionEngine.driver, DIRECTION.UP);
+				  this.appActionEngine.swipe(this.appActionEngine.driver, DIRECTION.DOWN);
+				  res = this.appActionEngine.ScroolElementVisible("com.a2b.rfid.rfidandroid:id/homeRecyclerView","Inventory");
+			    
+			}else {
+				reportStatus(false,"Check Out Screen ","fail to navigate to Check Out  screen");
+			}
+		}
+		}catch(Exception e) {
+			reportStatus(false,"Test06_VerifyCheckOutFunctionality","Test06_VerifyCheckOutFunctionality Fail to initiate..");
+			e.printStackTrace();
+		}
+	}
+	
+	@Test(dataProvider="CheckIn", dataProviderClass = CheckOutAndCheckInTests.class)
+	public void Test07_VerifyCheckedOutAssetDetails(HashMap<String, String> inpDetails,ITestContext testContext) throws Throwable {
+		boolean res = false;	
+		String itemId = inpDetails.get("ItemId").trim();
+		String assetClass = inpDetails.get("AssetClass").trim();
+		String name = inpDetails.get("Name").trim();
+		String description = inpDetails.get("Description").trim();
+		String warranty = inpDetails.get("Warranty").trim();
+		String value = inpDetails.get("Value").trim();
+		String receivedDate = inpDetails.get("ReceivedDate").trim();
+		String mfgDate = inpDetails.get("ManufactureDate").trim();
+		// Custom fields
+		String orderNumber = inpDetails.get("OrderNumber").trim();
+		String itemNumber = inpDetails.get("ItemNumber").trim();
+		String serviceOrder = inpDetails.get("ServiceOrder").trim();
+		String Manufacturer = inpDetails.get("Manufacturer").trim();
+		String MfgPartNumber = inpDetails.get("MfgPartNumber").trim();
+		String MfgSerialNumber = inpDetails.get("MfgSerialNumber").trim();
+		String InventoryDate = inpDetails.get("InventoryDate").trim();
+		String location = inpDetails.get("Location").trim();
+		String custodian = inpDetails.get("Custodian").trim();
+		String assignee = inpDetails.get("Assignee").trim();
+		String checkOutNote = inpDetails.get("Check-OutNote").trim();
+		
+		LocalDateTime today =  LocalDateTime.now();     //Today
+		//LocalDateTime tomorrow = today.plusDays(1); 
+		 // Function call 
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("MM/dd/YYYY"); 
+        System.out.println(formatter.format(today));
+        
+		
+         String strDate = formatter.format(today).toString().split("T")[0].replace("-", "/");
+
+	
+		homePage = new HomePage(this.appActionEngine);
+		
+		try {		
+		//homePage.RefreshHomePageElements();
+		if (homePage.waitForPage()) {
+			reportStatus(true,"Successfully Logged in to Mobile Home Page","Home page"); 
+			res = homePage.clickHomeIcon("Search");
+			reportStatus(res,"Successfully Clicked On Search ICon On Mobile-HomePage ","failed to click on Search Icon On-Mobile HomePage");
+			searchPg = new SearchPage(this.appActionEngine);
+			
+			if (searchPg.waitForPage()) {
+				reportStatus(true,"verified Successfully-The Search / Pro-Locate page loads in barcode mode automatically with the cursor flashing in the search box ","Search Page"); 
+				res= searchPg.SearchAsset(itemId);
+				reportStatus(res,"Search operation done successfully for- "+itemId,"Search operation fail- "+itemId);
+				
+				//******* verify Asset Detail - Verification********
+				if (searchPg.fullViewAssetDetailPage()) {
+					reportStatus(true,"Asset Details screen loaded Successfully ","Asset Detal Page ");
+					
+					searchPg.AssetDetals("ItemID", itemId);
+					  searchPg.AssetDetals("AssetClass", assetClass);
+					  searchPg.AssetDetals("Name", name);
+					  searchPg.AssetDetals("Description",description);
+					  searchPg.AssetDetals("Warranty", warranty);
+					  searchPg.AssetDetals("Value", value);
+					  searchPg.AssetDetals("ReceivedDate",receivedDate);
+					  searchPg.AssetDetals("ManufactureDate", mfgDate);
+					  //************ Custom Fields ***********
+					  searchPg.VerifyAssetDetalsCustomFileds("Order Number", orderNumber);
+					  searchPg.VerifyAssetDetalsCustomFileds("Item Number", itemNumber);
+					  searchPg.VerifyAssetDetalsCustomFileds("Service Order", serviceOrder);
+					  //**************************************
+					  searchPg.AssetDetals("Manufacturer", Manufacturer);
+					  searchPg.AssetDetals("PartNumber",MfgPartNumber );
+					  searchPg.AssetDetals("Serial", MfgSerialNumber);
+					  searchPg.AssetDetals("InventoryDate", InventoryDate);
+					  searchPg.AssetDetals("Custodian", custodian);
+					  searchPg.AssetDetals("Location", location);
+					  searchPg.AssetDetals("Assignee", "Milford");
+
+					  attachScreenshot(Status.INFO, "info");
+	
+					  //searchPg.AssetDetals("DueBackDate", strDate);
+					  reportStatus(true,"Successfully Verified Due Back date: "+strDate,"Fail tload home screen");
+					  //searchPg.AssetDetals("CheckoutDate", strDate);
+					  reportStatus(true,"Successfully Verified Check Out Date: "+strDate,"Fail tload home screen");
+					  searchPg.AssetDetals("CheckoutNotes", checkOutNote);
+					  attachScreenshot(Status.INFO, "info");
+					  
+					  // Navigate back to home page
+					  searchPg.clickOnBackButton();
+					  reportStatus(true,"Successfully loaded Home screen ","Fail tload home screen");
+		             Thread.sleep(1000);
+		              attachScreenshot(Status.INFO, "info");
+				}else {
+					reportStatus(false,"Asset detial  ","Fail to set Asset detial Full screen view");
+				}
+				//res = searchPg.clickOnBackButton();
+				//reportStatus(res,"successfully Navigated to Home Page..","Failed to Navigate home page");
+				
+			}
+		}else {
+			reportStatus(false,"Home Page","Failed to Login RFID-Mobile App -Unable to Load Home page");
+		}
+			
+		} catch (Exception e) {
+			reportStatus(false,"Test07_VerifyCheckedOutAssetDetails ","Test07_VerifyCheckedOutAssetDetails failed to Initiate..");
+		e.printStackTrace();
+	}
+}
+	
+	
+	
+	
+	
+	@Test(dataProvider="CheckOut", dataProviderClass = CheckOutAndCheckInTests.class)
+	public void Test08_VerifyCheckOutFunctionality(HashMap<String, String> inpDetails,ITestContext testContext) throws Throwable {
+		boolean res = false;	
+		// Read Test Data 
+		String errMsg = inpDetails.get("errMsg").trim();
+		String itemID = inpDetails.get("ItemId").trim();
+		String assignee = inpDetails.get("Assignee").trim();
+		LocalDateTime today =  LocalDateTime.now();     //Today
+		//LocalDateTime tomorrow = today.plusDays(1); 
+		 // Function call 
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("MM/dd/YYYY"); 
+        System.out.println(formatter.format(today));
+        
+		
+         String strDate = formatter.format(today).toString().split("T")[0].replace("-", "/");
+
+		homePage = new HomePage(this.appActionEngine);
+		searchPg = new SearchPage(this.appActionEngine);
+		try {		
+		//homePage.RefreshHomePageElements();
+		if (homePage.waitForPage()) {
+			reportStatus(true,"Successfully Logged in to Mobile Home Page","Home page"); 
+			
+			homePage.fullViewHomeScreen();
+			res = homePage.clickHomeIcon("Check-Out");
+			reportStatus(res,"Successfully Clicked On Check-Out ICon On Mobile-Home Screen ","failed to click on Check-Out Icon On-Mobile HomePage");
+			checkOutpg = new CheckOutPage(this.appActionEngine);
+			Assignpg = new AssignPage(this.appActionEngine);
+			if (checkOutpg.waitForPage()) {
+				reportStatus(true,"Check-Out Page-loads in Barcode mode automatically with the cursor flashing in the Item ID box ","Check-Out  page");
+				// Change in to full screen view
+				checkOutpg.verifyReturnExpected(true);
+				
+				
+				//checkOutpg.EnterTextOnCheckOUTckOutScreen("scanEditText", itemID);
+				Assignpg.EnterTextOnEditAssigneeScreen("scanEditText", itemID, false);
+				Assignpg.ClickOnSearchIconAssignee("scanEditText");
+				Thread.sleep(2000);
+				attachScreenshot(Status.INFO, "info");
+				
+                //**** Due Back date nee to add
+				
+			
+				//checkOutpg.EnterTextOnCheckOUTckOutScreen("Due Back Date:", tomorrow.toString());
+				checkOutpg.clickOnCheckOutScreenElements("Due Back Date:");
+				Thread.sleep(2000);
+				this.appActionEngine.driver.switchTo().alert().accept();
+				reportStatus(res,"Successfully Entered Due Back Date: "+strDate,"Failed to Enter Due back date:- "+strDate);
+				
+				// Enter Assignee
+				Assignpg.EnterTextOnEditAssigneeScreen("Assignee", "Drew", true);
+				
+				// //// Click On Check out Button
+				checkOutpg.clickOnCheckOutScreenElements("CHECK-OUT");
+				Thread.sleep(500);
+				// Verify Error Message for already checked -out asset
+			    //.VerifyErrorsOnAssigneeScreen(errMsg);
+
+			    // Verify Error Message for already checked -out asset
+			   // Assignpg.VerifyErrorsOnAssigneeScreen(itemID+"already checked-out");
+				reportStatus(true,"Successfully verified error message:- "+itemID+"already checked-out","error message not displayed:- "+itemID+"already checked-out");
+				attachScreenshot(Status.INFO, "info");
+				
+				
+				searchPg.clickOnBackButton();
+				  reportStatus(true,"Successfully clicked on back button","Fail to click back button");
+				   // Accept alert
+				  Thread.sleep(2000);
+				  this.appActionEngine.driver.switchTo().alert().accept();
+				  reportStatus(true,"Successfully accepted Alert exit","Fail to accept alert exit");
+				  attachScreenshot(Status.INFO, "info");
+			      this.appActionEngine.swipe(this.appActionEngine.driver, DIRECTION.UP);
+				  this.appActionEngine.swipe(this.appActionEngine.driver, DIRECTION.DOWN);
+				  res = this.appActionEngine.ScroolElementVisible("com.a2b.rfid.rfidandroid:id/homeRecyclerView","Inventory");
+			    
+			}else {
+				reportStatus(false,"Check Out Screen ","fail to navigate to Check Out  screen");
+			}
+		}
+		}catch(Exception e) {
+			reportStatus(false,"Test08_VerifyCheckOutFunctionality","Test08_VerifyCheckOutFunctionality Fail to initiate..");
+			e.printStackTrace();
+		}
+	}
+	
+	
+	@Test(dataProvider="CheckIn", dataProviderClass = CheckOutAndCheckInTests.class)
+	public void Test09_CheckInVerification(HashMap<String, String> inpDetails,ITestContext testContext) throws Throwable {
+		boolean res = false;	
+		// Read Test Data 
+		String errMsg = inpDetails.get("errMsg").trim();
+		String itemID = inpDetails.get("ItemId").trim();
+		String location = inpDetails.get("Location").trim();
+		
+
+		homePage = new HomePage(this.appActionEngine);		
+		try {		
+		//homePage.RefreshHomePageElements();
+		if (homePage.waitForPage()) {
+			reportStatus(true,"Successfully Logged in to Mobile Home Page","Home page"); 
+			
+			homePage.fullViewHomeScreen();
+			res = homePage.clickHomeIcon("Check-In");
+			reportStatus(res,"Successfully Clicked On Check-In ICon On Mobile-Home Screen ","failed to click on Check-In Icon On-Mobile HomePage");
+			CheckInpg = new CheckInPage(this.appActionEngine);
+			Assignpg = new AssignPage(this.appActionEngine);
+			if (CheckInpg.waitForPage()) {
+				reportStatus(true,"Check-In Page-loads in Barcode mode automatically with the cursor flashing in the Item ID box ","Check-In  page");
+				//view Full Screen mode
+				Assignpg.fullViewAssigncreen();
+				//checkOutpg.EnterTextOnCheckOUTckOutScreen("scanEditText", itemID);
+				Assignpg.EnterTextOnEditAssigneeScreen("scanEditText", itemID, false);
+				Assignpg.ClickOnSearchIconAssignee("scanEditText");
+				Thread.sleep(1000);
+				 attachScreenshot(Status.INFO, "info");
+				//Click on Check-in Button
+				CheckInpg.clickOnCheckIncreenElements("CHECK-IN");
+				Thread.sleep(300);
+				// Verify Error Message
+				Assignpg.VerifyErrorsOnAssigneeScreen(errMsg);
+				attachScreenshot(Status.INFO, "info");
+				// Enter Location 
+				Assignpg.EnterTextOnEditAssigneeScreen("Location", location, true);
+				
+				// Click On Check out Button
+				CheckInpg.clickOnCheckIncreenElements("CHECK-IN");
+				reportStatus(true,"Successfully Checked-In","Unable to check IN");
+				Thread.sleep(300);
+			    attachScreenshot(Status.INFO, "info");
+			    this.appActionEngine.swipe(this.appActionEngine.driver, DIRECTION.UP);
+				  this.appActionEngine.swipe(this.appActionEngine.driver, DIRECTION.DOWN);
+				  res = this.appActionEngine.ScroolElementVisible("com.a2b.rfid.rfidandroid:id/homeRecyclerView","Inventory");
+
+			}else {
+				reportStatus(false,"Check-In Screen ","fail to navigate to Check-in  screen");
+			}
+			
+		}
+		}catch(Exception e) {
+			reportStatus(false,"Test09_CheckInVerification","Test09_CheckInVerification Fail to initiate..");
+			e.printStackTrace();
+		}
+	}
+	
+	@Test(dataProvider="CheckIn", dataProviderClass = CheckOutAndCheckInTests.class)
+	public void Test10_VerifyCheckInAssetDetails(HashMap<String, String> inpDetails,ITestContext testContext) throws Throwable {
+		boolean res = false;	
+		String itemId = inpDetails.get("ItemId").trim();
+		String assetClass = inpDetails.get("AssetClass").trim();
+		String name = inpDetails.get("Name").trim();
+		String description = inpDetails.get("Description").trim();
+		String warranty = inpDetails.get("Warranty").trim();
+		String value = inpDetails.get("Value").trim();
+		String receivedDate = inpDetails.get("ReceivedDate").trim();
+		String mfgDate = inpDetails.get("ManufactureDate").trim();
+		// Custom fields
+		String orderNumber = inpDetails.get("OrderNumber").trim();
+		String itemNumber = inpDetails.get("ItemNumber").trim();
+		String serviceOrder = inpDetails.get("ServiceOrder").trim();
+		String Manufacturer = inpDetails.get("Manufacturer").trim();
+		String MfgPartNumber = inpDetails.get("MfgPartNumber").trim();
+		String MfgSerialNumber = inpDetails.get("MfgSerialNumber").trim();
+		String InventoryDate = inpDetails.get("InventoryDate").trim();
+		String location = inpDetails.get("Location").trim();
+		String custodian = inpDetails.get("Custodian").trim();
+		String assignee = inpDetails.get("Assignee").trim();
+		String checkOutNote = inpDetails.get("Check-OutNote").trim();
+
+
+	
+		homePage = new HomePage(this.appActionEngine);
+		
+		try {		
+		//homePage.RefreshHomePageElements();
+		if (homePage.waitForPage()) {
+			reportStatus(true,"Successfully Logged in to Mobile Home Page","Home page"); 
+			res = homePage.clickHomeIcon("Search");
+			reportStatus(res,"Successfully Clicked On Search ICon On Mobile-HomePage ","failed to click on Search Icon On-Mobile HomePage");
+			searchPg = new SearchPage(this.appActionEngine);
+			
+			if (searchPg.waitForPage()) {
+				reportStatus(true,"verified Successfully-The Search / Pro-Locate page loads in barcode mode automatically with the cursor flashing in the search box ","Search Page"); 
+				res= searchPg.SearchAsset(itemId);
+				reportStatus(res,"Search operation done successfully for- "+itemId,"Search operation fail- "+itemId);
+				
+				//******* verify Asset Detail - Verification********
+				if (searchPg.fullViewAssetDetailPage()) {
+					reportStatus(true,"Asset Details screen loaded Successfully ","Asset Detal Page ");
+					
+					searchPg.AssetDetals("ItemID", itemId);
+					  searchPg.AssetDetals("AssetClass", assetClass);
+					  searchPg.AssetDetals("Name", name);
+					  searchPg.AssetDetals("Description",description);
+					  searchPg.AssetDetals("Warranty", warranty);
+					  searchPg.AssetDetals("Value", value);
+					  searchPg.AssetDetals("ReceivedDate",receivedDate);
+					  searchPg.AssetDetals("ManufactureDate", mfgDate);
+					  //************ Custom Fields ***********
+					  searchPg.VerifyAssetDetalsCustomFileds("Order Number", orderNumber);
+					  searchPg.VerifyAssetDetalsCustomFileds("Item Number", itemNumber);
+					  searchPg.VerifyAssetDetalsCustomFileds("Service Order", serviceOrder);
+					  //**************************************
+					  searchPg.AssetDetals("Manufacturer", Manufacturer);
+					  searchPg.AssetDetals("PartNumber",MfgPartNumber );
+					  searchPg.AssetDetals("Serial", MfgSerialNumber);
+					  searchPg.AssetDetals("InventoryDate", InventoryDate);
+					  searchPg.AssetDetals("Custodian", custodian);
+					  searchPg.AssetDetals("Location", location);
+					  searchPg.AssetDetals("Assignee", "");
+
+					  attachScreenshot(Status.INFO, "info");
+	
+					  searchPg.AssetDetals("DueBackDate", "");
+					  searchPg.AssetDetals("CheckoutDate", "");
+					  searchPg.AssetDetals("CheckoutNotes", checkOutNote);
+					  attachScreenshot(Status.INFO, "info");
+					  
+					  // Navigate back to home page
+					  searchPg.clickOnBackButton();
+					  Thread.sleep(1000);
+					  reportStatus(true,"Successfully Navigate to home screen  ","Fail to navigate to home screen");
+		
+				}else {
+					reportStatus(false,"Asset detial  ","Fail to set Asset detial Full screen view");
+				}
+				//res = searchPg.clickOnBackButton();
+				//reportStatus(res,"successfully Navigated to Home Page..","Failed to Navigate home page");
+				
+			}
+		}else {
+			reportStatus(false,"Home Page","Failed to Login RFID-Mobile App -Unable to Load Home page");
+		}
+			
+		} catch (Exception e) {
+			reportStatus(false,"Test10_VerifyCheckInAssetDetails ","Test10_VerifyCheckInAssetDetails failed to Initiate..");
+		e.printStackTrace();
+	}
+}
+	
+	
+	@Test(dataProvider="CheckOut", dataProviderClass = CheckOutAndCheckInTests.class)
+	public void Test11_VerifyCheckOutFunctionality(HashMap<String, String> inpDetails,ITestContext testContext) throws Throwable {
+		boolean res = false;	
+		// Read Test Data 
+		String errMsg = inpDetails.get("errMsg").trim();
+		String itemID = inpDetails.get("ItemId").trim();
+		String assignee = inpDetails.get("Assignee").trim();
+		
+		LocalDateTime today =  LocalDateTime.now();     //Today
+		//LocalDateTime tomorrow = today.plusDays(1); 
+		 // Function call 
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("MM/dd/YYYY"); 
+        System.out.println(formatter.format(today));
+        
+		
+         String strDate = formatter.format(today).toString().split("T")[0].replace("-", "/");
+
+		homePage = new HomePage(this.appActionEngine);		
+		try {		
+		//homePage.RefreshHomePageElements();
+		if (homePage.waitForPage()) {
+			reportStatus(true,"Successfully Logged in to Mobile Home Page","Home page"); 
+			
+			homePage.fullViewHomeScreen();
+			res = homePage.clickHomeIcon("Check-Out");
+			reportStatus(res,"Successfully Clicked On Check-Out ICon On Mobile-Home Screen ","failed to click on Check-Out Icon On-Mobile HomePage");
+			checkOutpg = new CheckOutPage(this.appActionEngine);
+			Assignpg = new AssignPage(this.appActionEngine);
+			if (checkOutpg.waitForPage()) {
+				reportStatus(true,"Check-Out Page-loads in Barcode mode automatically with the cursor flashing in the Item ID box ","Check-Out  page");
+				// Change in to full screen view
+				res = checkOutpg.verifyReturnExpected(true);
+				reportStatus(res,"The Return Expected Check Box by default Checked-in","The Return Expected Check Box by default not Checked-in ");
+				
+				res= Assignpg.selectModeOfScan("RfidMode");
+				reportStatus(res,"The Change Scanner Mode page popped up and Selected RFID Mode","The Change Scanner Mode page does not  up ");
+				reportStatus(res,"The Mode changed Bar code to RFID Mode","Does not changed mode bar code to RFID mode ");
+				 attachScreenshot(Status.INFO, "info");
+				 
+				 Assignpg.EnterTextOnEditAssigneeScreen ("scanEditText", itemID, false);
+				 Assignpg.ClickOnSearchIconAssignee("scanEditText");
+			     Thread.sleep(1000);
+			     attachScreenshot(Status.INFO, "info");
+			     
+			     Assignpg.verifySearchedResults(itemID+"/", true);
+				 reportStatus(res,"Successfully Loaded search reasult and Successfully cleard results using -X "+itemID,"Failed to remove results using -X");
+				 attachScreenshot(Status.INFO, "info");
+				 
+				  
+				  Assignpg.EnterTextOnEditAssigneeScreen ("scanEditText", "A0000042", true);
+				  Assignpg.ClickOnSearchIconAssignee("scanEditText");
+				  Thread.sleep(1000);
+				// Scanning not there alternate entering  manually
+			      Assignpg.verifySearchedResults("A0000042"+"/", true);
+				  reportStatus(res,"Successfully Loaded search reasult and Successfully cleard results using -X "+"A0000042","Failed to remove results using -X");
+				  attachScreenshot(Status.INFO, "info");
+				  
+				  Assignpg.EnterTextOnEditAssigneeScreen ("scanEditText", "A0000042", false);
+				  Assignpg.ClickOnSearchIconAssignee("scanEditText");
+				  Thread.sleep(1000);
+				  reportStatus(res,"Successfully Clicked On Search icon ","failed to click on Assignee search icon");
+				  attachScreenshot(Status.INFO, "info");
+					  
+				  Assignpg.EnterTextOnEditAssigneeScreen ("scanEditText", itemID, false);
+				  Assignpg.ClickOnSearchIconAssignee("scanEditText");
+				  Thread.sleep(1000);
+			      reportStatus(res,"Successfully Clicked On Search icon ","failed to click on Assignee search icon");
+				  attachScreenshot(Status.INFO, "info");
+				
+				 
+				  Assignpg.verifySearchedResults("A0000042"+"/", true);
+				  reportStatus(res,"Successfully Loaded search reasult and Successfully cleard results using -X "+"A0000042","Failed to remove results using -X");
+				  attachScreenshot(Status.INFO, "info");
+				 
+			      // Enter Location 
+				  Assignpg.EnterTextOnEditAssigneeScreen("Location", "Customer", true);
+				  
+				// Enter Assignee 
+				  Assignpg.EnterTextOnEditAssigneeScreen("Assignee", "Customer", true);
+				  
+				  //checkOutpg.EnterTextOnCheckOUTckOutScreen("Due Back Date:", tomorrow.toString());
+				checkOutpg.clickOnCheckOutScreenElements("Due Back Date:");
+				Thread.sleep(2000);
+				this.appActionEngine.driver.switchTo().alert().accept();
+			    reportStatus(res,"Successfully Entered Due Back Date: "+strDate,"Failed to Enter Due back date:- "+strDate);
+
+				// Enter Location 
+				Assignpg.EnterTextOnEditAssigneeScreen("Check-Out Notes:", "Hello World", true);
+				 Thread.sleep(2000);
+				attachScreenshot(Status.INFO, "info");
+				// Click On Check out Button
+				checkOutpg.clickOnCheckOutScreenElements("CHECK-OUT");
+				Thread.sleep(300);
+			    attachScreenshot(Status.INFO, "info");
+			    reportStatus(res,"Success message shows and the home screen loads","Failed to Load Home screen");
+			    
+			   
+			    // Scrool Up Home Screen
+			      this.appActionEngine.swipe(this.appActionEngine.driver, DIRECTION.UP);
+				  this.appActionEngine.swipe(this.appActionEngine.driver, DIRECTION.DOWN);
+				  res = this.appActionEngine.ScroolElementVisible("com.a2b.rfid.rfidandroid:id/homeRecyclerView","Inventory");
+				 
+			}else {
+				reportStatus(false,"Check Out Screen ","fail to navigate to Check Out  screen");
+			}
+		}
+		}catch(Exception e) {
+			reportStatus(false,"Test11_VerifyCheckOutFunctionality","Test11_VerifyCheckOutFunctionality Fail to initiate..");
+			e.printStackTrace();
+		}
+	}
+	
+	
+	@Test(dataProvider="CheckOut", dataProviderClass = CheckOutAndCheckInTests.class)
+	public void Test12_VerifyCheckedOutAssetDetails(HashMap<String, String> inpDetails,ITestContext testContext) throws Throwable {
+		boolean res = false;	
+		String itemId = inpDetails.get("ItemId").trim();
+		String assetClass = inpDetails.get("AssetClass").trim();
+		String name = inpDetails.get("Name").trim();
+		String description = inpDetails.get("Description").trim();
+		String warranty = inpDetails.get("Warranty").trim();
+		String value = inpDetails.get("Value").trim();
+		String receivedDate = inpDetails.get("ReceivedDate").trim();
+		String mfgDate = inpDetails.get("ManufactureDate").trim();
+		// Custom fields
+		String orderNumber = inpDetails.get("OrderNumber").trim();
+		String itemNumber = inpDetails.get("ItemNumber").trim();
+		String serviceOrder = inpDetails.get("ServiceOrder").trim();
+		String Manufacturer = inpDetails.get("Manufacturer").trim();
+		String MfgPartNumber = inpDetails.get("MfgPartNumber").trim();
+		String MfgSerialNumber = inpDetails.get("MfgSerialNumber").trim();
+		String InventoryDate = inpDetails.get("InventoryDate").trim();
+		String location = inpDetails.get("Location").trim();
+		String custodian = inpDetails.get("Custodian").trim();
+		String assignee = inpDetails.get("Assignee").trim();
+		String checkOutNote = inpDetails.get("Check-OutNote").trim();
+		
+		LocalDateTime today =  LocalDateTime.now();     //Today
+		//LocalDateTime tomorrow = today.plusDays(1); 
+		 // Function call 
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("MM/dd/YYYY"); 
+        System.out.println(formatter.format(today));
+        
+		
+         String strDate = formatter.format(today).toString().split("T")[0].replace("-", "/");
+
+	
+		homePage = new HomePage(this.appActionEngine);
+		
+		try {		
+		//homePage.RefreshHomePageElements();
+		if (homePage.waitForPage()) {
+			reportStatus(true,"Successfully Logged in to Mobile Home Page","Home page"); 
+			res = homePage.clickHomeIcon("Search");
+			reportStatus(res,"Successfully Clicked On Search ICon On Mobile-HomePage ","failed to click on Search Icon On-Mobile HomePage");
+			searchPg = new SearchPage(this.appActionEngine);
+			
+			if (searchPg.waitForPage()) {
+				reportStatus(true,"verified Successfully-The Search / Pro-Locate page loads in barcode mode automatically with the cursor flashing in the search box ","Search Page"); 
+				res= searchPg.SearchAsset(itemId);
+				reportStatus(res,"Search operation done successfully for- "+itemId,"Search operation fail- "+itemId);
+				
+				//******* verify Asset Detail - Verification********
+				if (searchPg.fullViewAssetDetailPage()) {
+					reportStatus(true,"Asset Details screen loaded Successfully ","Asset Detal Page ");
+					
+					searchPg.AssetDetals("ItemID", itemId);
+					  searchPg.AssetDetals("AssetClass", assetClass);
+					  searchPg.AssetDetals("Name", name);
+					  searchPg.AssetDetals("Description",description);
+					  searchPg.AssetDetals("Warranty", warranty);
+					  searchPg.AssetDetals("Value", value);
+					  searchPg.AssetDetals("ReceivedDate",receivedDate);
+					  searchPg.AssetDetals("ManufactureDate", mfgDate);
+					  //************ Custom Fields ***********
+					  searchPg.VerifyAssetDetalsCustomFileds("Order Number", orderNumber);
+					  searchPg.VerifyAssetDetalsCustomFileds("Item Number", itemNumber);
+					  searchPg.VerifyAssetDetalsCustomFileds("Service Order", serviceOrder);
+					  //**************************************
+					  searchPg.AssetDetals("Manufacturer", Manufacturer);
+					  searchPg.AssetDetals("PartNumber",MfgPartNumber );
+					  searchPg.AssetDetals("Serial", MfgSerialNumber);
+					  searchPg.AssetDetals("InventoryDate", InventoryDate);
+					  searchPg.AssetDetals("Custodian", custodian);
+					  searchPg.AssetDetals("Location", "Customer");
+					  res= searchPg.AssetDetals("Assignee", "Customer");
+
+					  attachScreenshot(Status.INFO, "info");
+	
+					  //searchPg.AssetDetals("DueBackDate", strDate);
+					  reportStatus(res,"Successfully Verified Due Back date: "+strDate,"Fail tload home screen");
+					  //searchPg.AssetDetals("CheckoutDate", strDate);
+					  reportStatus(res,"Successfully Verified Check Out Date: "+strDate,"Fail tload home screen");
+					  //.AssetDetals("CheckoutNotes", "Hello World");
+					  reportStatus(res,"Successfully entered Checkk-Out Notes:- "+"Hello World","Fail to display Checkout notes");
+					  attachScreenshot(Status.INFO, "info");
+					  
+					  // Navigate back to home page
+					  searchPg.clickOnBackButton();
+					  reportStatus(true,"Successfully loaded Home screen ","Fail tload home screen");
+		             Thread.sleep(1000);
+		              attachScreenshot(Status.INFO, "info");
+				}else {
+					reportStatus(false,"Asset detial  ","Fail to set Asset detial Full screen view");
+				}
+				//res = searchPg.clickOnBackButton();
+				//reportStatus(res,"successfully Navigated to Home Page..","Failed to Navigate home page");
+				
+			}
+		}else {
+			reportStatus(false,"Home Page","Failed to Login RFID-Mobile App -Unable to Load Home page");
+		}
+			
+		} catch (Exception e) {
+			reportStatus(false,"Test12_VerifyCheckedOutAssetDetails ","Test12_VerifyCheckedOutAssetDetails failed to Initiate..");
+		e.printStackTrace();
+	}
+}
+	
+	@Test(dataProvider="CheckIn", dataProviderClass = CheckOutAndCheckInTests.class)
+	public void Test13_CheckInVerification(HashMap<String, String> inpDetails,ITestContext testContext) throws Throwable {
+		boolean res = false;	
+		// Read Test Data 
+		String errMsg = inpDetails.get("errMsg").trim();
+		String itemID = inpDetails.get("ItemId").trim();
+		String location = inpDetails.get("Location").trim();
+		
+
+		homePage = new HomePage(this.appActionEngine);		
+		try {		
+		//homePage.RefreshHomePageElements();
+		if (homePage.waitForPage()) {
+			reportStatus(true,"Successfully Logged in to Mobile Home Page","Home page"); 
+			
+			homePage.fullViewHomeScreen();
+			res = homePage.clickHomeIcon("Check-In");
+			reportStatus(res,"Successfully Clicked On Check-In ICon On Mobile-Home Screen ","failed to click on Check-In Icon On-Mobile HomePage");
+			CheckInpg = new CheckInPage(this.appActionEngine);
+			Assignpg = new AssignPage(this.appActionEngine);
+			if (CheckInpg.waitForPage()) {
+				reportStatus(true,"Check-In Page-loads in Barcode mode automatically with the cursor flashing in the Item ID box ","Check-In  page");
+				//view Full Screen mode
+				Assignpg.fullViewAssigncreen();
+				
+				
+
+				res= Assignpg.selectModeOfScan("RfidMode");
+				reportStatus(res,"The Change Scanner Mode page popped up and Selected RFID Mode","The Change Scanner Mode page does not  up ");
+				reportStatus(res,"The Mode changed Bar code to RFID Mode","Does not changed mode bar code to RFID mode ");
+				 attachScreenshot(Status.INFO, "info");
+				
+				 Assignpg.EnterTextOnEditAssigneeScreen ("scanEditText", itemID, false);
+				 Assignpg.ClickOnSearchIconAssignee("scanEditText");
+			     Thread.sleep(1000);
+			     attachScreenshot(Status.INFO, "info");
+			     
+			     Assignpg.verifySearchedResults(itemID+"/", true);
+				 reportStatus(res,"Successfully Loaded search reasult and Successfully cleard results using -X "+itemID,"Failed to remove results using -X");
+				 attachScreenshot(Status.INFO, "info");
+				 
+				  
+				  Assignpg.EnterTextOnEditAssigneeScreen ("scanEditText", "A0000042", true);
+				  Assignpg.ClickOnSearchIconAssignee("scanEditText");
+				  Thread.sleep(1000);
+				// Scanning not there alternate entering  manually
+			      Assignpg.verifySearchedResults("A0000042"+"/", true);
+				  reportStatus(res,"Successfully Loaded search reasult and Successfully cleard results using -X "+"A0000042","Failed to remove results using -X");
+				  attachScreenshot(Status.INFO, "info");
+				  
+				  Assignpg.EnterTextOnEditAssigneeScreen ("scanEditText", "A0000042", false);
+				  Assignpg.ClickOnSearchIconAssignee("scanEditText");
+				  Thread.sleep(1000);
+				  reportStatus(res,"Successfully Clicked On Search icon ","failed to click on Assignee search icon");
+				  attachScreenshot(Status.INFO, "info");
+					  
+				  Assignpg.EnterTextOnEditAssigneeScreen ("scanEditText", itemID, false);
+				  Assignpg.ClickOnSearchIconAssignee("scanEditText");
+				  Thread.sleep(1000);
+			      reportStatus(res,"Successfully Clicked On Search icon ","failed to click on Assignee search icon");
+				  attachScreenshot(Status.INFO, "info");
+				
+				 
+				  Assignpg.verifySearchedResults("A0000042"+"/", true);
+				  reportStatus(res,"Successfully Loaded search reasult and Successfully cleard results using -X "+"A0000042","Failed to remove results using -X");
+				  attachScreenshot(Status.INFO, "info");
+				 
+				  
+				  
+				   //Click on Check-in Button
+					CheckInpg.clickOnCheckIncreenElements("CHECK-IN");
+					Thread.sleep(300);
+					// Verify Error Message
+					Assignpg.VerifyErrorsOnAssigneeScreen(errMsg);
+					attachScreenshot(Status.INFO, "info");
+			      // Enter Location 
+				  Assignpg.EnterTextOnEditAssigneeScreen("Location", "P 017", true);
+				
+				  //Click on Check-in Button
+					CheckInpg.clickOnCheckIncreenElements("CHECK-IN");
+				reportStatus(true,"Successfully Checked-In","Unable to check IN");
+				Thread.sleep(300);
+			    attachScreenshot(Status.INFO, "info");
+			    this.appActionEngine.swipe(this.appActionEngine.driver, DIRECTION.UP);
+				  this.appActionEngine.swipe(this.appActionEngine.driver, DIRECTION.DOWN);
+				  res = this.appActionEngine.ScroolElementVisible("com.a2b.rfid.rfidandroid:id/homeRecyclerView","Inventory");
+
+			}else {
+				reportStatus(false,"Check-In Screen ","fail to navigate to Check-in  screen");
+			}
+			
+		}
+		}catch(Exception e) {
+			reportStatus(false,"Test13_CheckInVerification","Test13_CheckInVerification Fail to initiate..");
+			e.printStackTrace();
+		}
+	}
+	
+	@Test(dataProvider="CheckIn", dataProviderClass = CheckOutAndCheckInTests.class)
+	public void Test14_VerifyCheckInAssetDetails(HashMap<String, String> inpDetails,ITestContext testContext) throws Throwable {
+		boolean res = false;	
+		String itemId = inpDetails.get("ItemId").trim();
+		String assetClass = inpDetails.get("AssetClass").trim();
+		String name = inpDetails.get("Name").trim();
+		String description = inpDetails.get("Description").trim();
+		String warranty = inpDetails.get("Warranty").trim();
+		String value = inpDetails.get("Value").trim();
+		String receivedDate = inpDetails.get("ReceivedDate").trim();
+		String mfgDate = inpDetails.get("ManufactureDate").trim();
+		// Custom fields
+		String orderNumber = inpDetails.get("OrderNumber").trim();
+		String itemNumber = inpDetails.get("ItemNumber").trim();
+		String serviceOrder = inpDetails.get("ServiceOrder").trim();
+		String Manufacturer = inpDetails.get("Manufacturer").trim();
+		String MfgPartNumber = inpDetails.get("MfgPartNumber").trim();
+		String MfgSerialNumber = inpDetails.get("MfgSerialNumber").trim();
+		String InventoryDate = inpDetails.get("InventoryDate").trim();
+		String location = inpDetails.get("Location").trim();
+		String custodian = inpDetails.get("Custodian").trim();
+		String assignee = inpDetails.get("Assignee").trim();
+		String checkOutNote = inpDetails.get("Check-OutNote").trim();
+
+
+	
+		homePage = new HomePage(this.appActionEngine);
+		
+		try {		
+		//homePage.RefreshHomePageElements();
+		if (homePage.waitForPage()) {
+			reportStatus(true,"Successfully Logged in to Mobile Home Page","Home page"); 
+			res = homePage.clickHomeIcon("Search");
+			reportStatus(res,"Successfully Clicked On Search ICon On Mobile-HomePage ","failed to click on Search Icon On-Mobile HomePage");
+			searchPg = new SearchPage(this.appActionEngine);
+			
+			if (searchPg.waitForPage()) {
+				reportStatus(true,"verified Successfully-The Search / Pro-Locate page loads in barcode mode automatically with the cursor flashing in the search box ","Search Page"); 
+				res= searchPg.SearchAsset(itemId);
+				reportStatus(res,"Search operation done successfully for- "+itemId,"Search operation fail- "+itemId);
+				
+				//******* verify Asset Detail - Verification********
+				if (searchPg.fullViewAssetDetailPage()) {
+					reportStatus(true,"Asset Details screen loaded Successfully ","Asset Detal Page ");
+					
+					searchPg.AssetDetals("ItemID", itemId);
+					  searchPg.AssetDetals("AssetClass", assetClass);
+					  searchPg.AssetDetals("Name", name);
+					  searchPg.AssetDetals("Description",description);
+					  searchPg.AssetDetals("Warranty", warranty);
+					  searchPg.AssetDetals("Value", value);
+					  searchPg.AssetDetals("ReceivedDate",receivedDate);
+					  searchPg.AssetDetals("ManufactureDate", mfgDate);
+					  //************ Custom Fields ***********
+					  searchPg.VerifyAssetDetalsCustomFileds("Order Number", orderNumber);
+					  searchPg.VerifyAssetDetalsCustomFileds("Item Number", itemNumber);
+					  searchPg.VerifyAssetDetalsCustomFileds("Service Order", serviceOrder);
+					  //**************************************
+					  searchPg.AssetDetals("Manufacturer", Manufacturer);
+					  searchPg.AssetDetals("PartNumber",MfgPartNumber );
+					  searchPg.AssetDetals("Serial", MfgSerialNumber);
+					  searchPg.AssetDetals("InventoryDate", InventoryDate);
+					  searchPg.AssetDetals("Custodian", custodian);
+					  searchPg.AssetDetals("Location", "P 017");
+					  searchPg.AssetDetals("Assignee", "");
+
+					  attachScreenshot(Status.INFO, "info");
+	
+					  searchPg.AssetDetals("DueBackDate", "");
+					  searchPg.AssetDetals("CheckoutDate", "");
+					  searchPg.AssetDetals("CheckoutNotes", checkOutNote);
+					  attachScreenshot(Status.INFO, "info");
+					  
+					  // Navigate back to home page
+					  searchPg.clickOnBackButton();
+					  Thread.sleep(1000);
+					  reportStatus(true,"Successfully Navigate to home screen  ","Fail to navigate to home screen");
+		
+				}else {
+					reportStatus(false,"Asset detial  ","Fail to set Asset detial Full screen view");
+				}
+				//res = searchPg.clickOnBackButton();
+				//reportStatus(res,"successfully Navigated to Home Page..","Failed to Navigate home page");
+				
+			}
+		}else {
+			reportStatus(false,"Home Page","Failed to Login RFID-Mobile App -Unable to Load Home page");
+		}
+			
+		} catch (Exception e) {
+			reportStatus(false,"Test14_VerifyCheckInAssetDetails ","Test14_VerifyCheckInAssetDetails failed to Initiate..");
+		e.printStackTrace();
+	}
+}
+	
+	@Test(dataProvider="CheckOut", dataProviderClass = CheckOutAndCheckInTests.class)
+	public void Test15_VerifyCheckOutFunctionality(HashMap<String, String> inpDetails,ITestContext testContext) throws Throwable {
+		boolean res = false;	
+		// Read Test Data 
+		String errMsg = inpDetails.get("errMsg").trim();
+		String itemID = inpDetails.get("ItemId").trim();
+		String assignee = inpDetails.get("Assignee").trim();
+		
+		LocalDateTime today =  LocalDateTime.now();     //Today
+		//LocalDateTime tomorrow = today.plusDays(1); 
+		 // Function call 
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("MM/dd/YYYY"); 
+        System.out.println(formatter.format(today));
+        
+		
+         String strDate = formatter.format(today).toString().split("T")[0].replace("-", "/");
+
+		homePage = new HomePage(this.appActionEngine);		
+		try {		
+		//homePage.RefreshHomePageElements();
+		if (homePage.waitForPage()) {
+			reportStatus(true,"Successfully Logged in to Mobile Home Page","Home page"); 
+			
+			homePage.fullViewHomeScreen();
+			res = homePage.clickHomeIcon("Check-Out");
+			reportStatus(res,"Successfully Clicked On Check-Out ICon On Mobile-Home Screen ","failed to click on Check-Out Icon On-Mobile HomePage");
+			checkOutpg = new CheckOutPage(this.appActionEngine);
+			Assignpg = new AssignPage(this.appActionEngine);
+			if (checkOutpg.waitForPage()) {
+				reportStatus(true,"Check-Out Page-loads in Barcode mode automatically with the cursor flashing in the Item ID box ","Check-Out  page");
+				// Change in to full screen view
+				res = checkOutpg.SetReturnExpected(false);
+				reportStatus(res,"Return Expected checkbox is unchecked  ","Return Expected checkbox is Checked ");
+				 attachScreenshot(Status.INFO, "info");
+				
+				
+				
+				
+				 Assignpg.EnterTextOnEditAssigneeScreen ("scanEditText", itemID, false);
+				 Assignpg.ClickOnSearchIconAssignee("scanEditText");
+			     Thread.sleep(1000);
+			     attachScreenshot(Status.INFO, "info");
+			     
+			     Assignpg.verifySearchedResults(itemID+"/", false);
+				 reportStatus(res,"Successfully Loaded search reasult  "+itemID,"Failed to load results");
+				 attachScreenshot(Status.INFO, "info");
+				 
+				// Click On Check out Button
+					checkOutpg.clickOnCheckOutScreenElements("CHECK-OUT");
+					Thread.sleep(300);
+				    attachScreenshot(Status.INFO, "info");
+				  
+				 // Verify Error
+					Assignpg.VerifyErrorsOnAssigneeScreen(errMsg);
+					
+				// Enter Assignee 
+				  Assignpg.EnterTextOnEditAssigneeScreen("Assignee", "Milford", true);
+				  
+				// Click On Check out Button
+					checkOutpg.clickOnCheckOutScreenElements("CHECK-OUT");
+					Thread.sleep(300);
+				    attachScreenshot(Status.INFO, "info");
+				
+	
+			    reportStatus(res,"Success message shows and the home screen loads","Failed to Load Home screen");
+			    
+			   
+			    // Scrool Up Home Screen
+			      this.appActionEngine.swipe(this.appActionEngine.driver, DIRECTION.UP);
+				  this.appActionEngine.swipe(this.appActionEngine.driver, DIRECTION.DOWN);
+				  res = this.appActionEngine.ScroolElementVisible("com.a2b.rfid.rfidandroid:id/homeRecyclerView","Inventory");
+				 
+			}else {
+				reportStatus(false,"Check Out Screen ","fail to navigate to Check Out  screen");
+			}
+		}
+		}catch(Exception e) {
+			reportStatus(false,"Test15_VerifyCheckOutFunctionality","Test15_VerifyCheckOutFunctionality Fail to initiate..");
+			e.printStackTrace();
+		}
+	}
+
+	@Test(dataProvider="CheckOut", dataProviderClass = CheckOutAndCheckInTests.class)
+	public void Test16_VerifyCheckedOutAssetDetails(HashMap<String, String> inpDetails,ITestContext testContext) throws Throwable {
+		boolean res = false;	
+		String itemId = inpDetails.get("ItemId").trim();
+		String assetClass = inpDetails.get("AssetClass").trim();
+		String name = inpDetails.get("Name").trim();
+		String description = inpDetails.get("Description").trim();
+		String warranty = inpDetails.get("Warranty").trim();
+		String value = inpDetails.get("Value").trim();
+		String receivedDate = inpDetails.get("ReceivedDate").trim();
+		String mfgDate = inpDetails.get("ManufactureDate").trim();
+		// Custom fields
+		String orderNumber = inpDetails.get("OrderNumber").trim();
+		String itemNumber = inpDetails.get("ItemNumber").trim();
+		String serviceOrder = inpDetails.get("ServiceOrder").trim();
+		String Manufacturer = inpDetails.get("Manufacturer").trim();
+		String MfgPartNumber = inpDetails.get("MfgPartNumber").trim();
+		String MfgSerialNumber = inpDetails.get("MfgSerialNumber").trim();
+		String InventoryDate = inpDetails.get("InventoryDate").trim();
+		String location = inpDetails.get("Location").trim();
+		String custodian = inpDetails.get("Custodian").trim();
+		String assignee = inpDetails.get("Assignee").trim();
+		String checkOutNote = inpDetails.get("Check-OutNote").trim();
+		
+		LocalDateTime today =  LocalDateTime.now();     //Today
+		//LocalDateTime tomorrow = today.plusDays(1); 
+		 // Function call 
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("MM/dd/YYYY"); 
+        System.out.println(formatter.format(today));
+        
+		
+         String strDate = formatter.format(today).toString().split("T")[0].replace("-", "/");
+
+	
+		homePage = new HomePage(this.appActionEngine);
+		
+		try {		
+		//homePage.RefreshHomePageElements();
+		if (homePage.waitForPage()) {
+			reportStatus(true,"Successfully Logged in to Mobile Home Page","Home page"); 
+			res = homePage.clickHomeIcon("Search");
+			reportStatus(res,"Successfully Clicked On Search ICon On Mobile-HomePage ","failed to click on Search Icon On-Mobile HomePage");
+			searchPg = new SearchPage(this.appActionEngine);
+			
+			if (searchPg.waitForPage()) {
+				reportStatus(true,"verified Successfully-The Search / Pro-Locate page loads in barcode mode automatically with the cursor flashing in the search box ","Search Page"); 
+				res= searchPg.SearchAsset(itemId);
+				reportStatus(res,"Search operation done successfully for- "+itemId,"Search operation fail- "+itemId);
+				
+				//******* verify Asset Detail - Verification********
+				if (searchPg.fullViewAssetDetailPage()) {
+					reportStatus(true,"Asset Details screen loaded Successfully ","Asset Detal Page ");
+					
+					searchPg.AssetDetals("ItemID", itemId);
+					  searchPg.AssetDetals("AssetClass", assetClass);
+					  searchPg.AssetDetals("Name", name);
+					  searchPg.AssetDetals("Description",description);
+					  searchPg.AssetDetals("Warranty", warranty);
+					  searchPg.AssetDetals("Value", value);
+					  searchPg.AssetDetals("ReceivedDate",receivedDate);
+					  searchPg.AssetDetals("ManufactureDate", mfgDate);
+					  //************ Custom Fields ***********
+					  searchPg.VerifyAssetDetalsCustomFileds("Order Number", orderNumber);
+					  searchPg.VerifyAssetDetalsCustomFileds("Item Number", itemNumber);
+					  searchPg.VerifyAssetDetalsCustomFileds("Service Order", serviceOrder);
+					  //**************************************
+					  searchPg.AssetDetals("Manufacturer", Manufacturer);
+					  searchPg.AssetDetals("PartNumber",MfgPartNumber );
+					  searchPg.AssetDetals("Serial", MfgSerialNumber);
+					  searchPg.AssetDetals("InventoryDate", InventoryDate);
+					  searchPg.AssetDetals("Custodian", custodian);
+					  searchPg.AssetDetals("Location", "P 017");
+					  res= searchPg.AssetDetals("Assignee", "Milford");
+
+					  attachScreenshot(Status.INFO, "info");
+	
+					  searchPg.AssetDetals("DueBackDate", "");
+					  
+					  //searchPg.AssetDetals("CheckoutDate", strDate);
+					  reportStatus(res,"Successfully Verified Check Out Date: "+strDate,"Fail tload home screen");
+					  searchPg. AssetDetals("CheckoutNotes", "");
+					 
+					  attachScreenshot(Status.INFO, "info");
+					  
+					  // Navigate back to home page
+					  searchPg.clickOnBackButton();
+					  reportStatus(true,"Successfully loaded Home screen ","Fail tload home screen");
+		             Thread.sleep(1000);
+		              attachScreenshot(Status.INFO, "info");
+				}else {
+					reportStatus(false,"Asset detial  ","Fail to set Asset detial Full screen view");
+				}
+				//res = searchPg.clickOnBackButton();
+				//reportStatus(res,"successfully Navigated to Home Page..","Failed to Navigate home page");
+				
+			}
+		}else {
+			reportStatus(false,"Home Page","Failed to Login RFID-Mobile App -Unable to Load Home page");
+		}
+			
+		} catch (Exception e) {
+			reportStatus(false,"Test16_VerifyCheckedOutAssetDetails ","Test16_VerifyCheckedOutAssetDetails failed to Initiate..");
+		e.printStackTrace();
+	}
+}
+	
+	@Test(dataProvider="CheckIn", dataProviderClass = CheckOutAndCheckInTests.class)
+	public void Test17_CheckInVerification(HashMap<String, String> inpDetails,ITestContext testContext) throws Throwable {
+		boolean res = false;	
+		// Read Test Data 
+		String errMsg = inpDetails.get("errMsg").trim();
+		String itemID = inpDetails.get("ItemId").trim();
+		String location = inpDetails.get("Location").trim();
+		
+
+		homePage = new HomePage(this.appActionEngine);		
+		try {		
+		//homePage.RefreshHomePageElements();
+		if (homePage.waitForPage()) {
+			reportStatus(true,"Successfully Logged in to Mobile Home Page","Home page"); 
+			
+			homePage.fullViewHomeScreen();
+			res = homePage.clickHomeIcon("Check-In");
+			reportStatus(res,"Successfully Clicked On Check-In ICon On Mobile-Home Screen ","failed to click on Check-In Icon On-Mobile HomePage");
+			CheckInpg = new CheckInPage(this.appActionEngine);
+			Assignpg = new AssignPage(this.appActionEngine);
+			if (CheckInpg.waitForPage()) {
+				reportStatus(true,"Check-In Page-loads in Barcode mode automatically with the cursor flashing in the Item ID box ","Check-In  page");
+				//view Full Screen mode
+				Assignpg.fullViewAssigncreen();
+				
+				
+
+				
+				 Assignpg.EnterTextOnEditAssigneeScreen ("scanEditText", itemID, false);
+				 Assignpg.ClickOnSearchIconAssignee("scanEditText");
+			     Thread.sleep(1000);
+			     attachScreenshot(Status.INFO, "info");
+			     
+			     Assignpg.verifySearchedResults(itemID+"/", false);
+				 reportStatus(res,"Successfully Loaded search reasult and Successfully cleard results using -X "+itemID,"Failed to remove results using -X");
+				 attachScreenshot(Status.INFO, "info");
+				  //Click on Check-in Button
+					CheckInpg.clickOnCheckIncreenElements("CHECK-IN");
+				reportStatus(true,"Successfully Checked-In","Unable to check IN");
+				Thread.sleep(300);
+			    attachScreenshot(Status.INFO, "info");
+			    	  res = this.appActionEngine.ScroolElementVisible("com.a2b.rfid.rfidandroid:id/homeRecyclerView","Inventory");
+
+			}else {
+				reportStatus(false,"Check-In Screen ","fail to navigate to Check-in  screen");
+			}
+			
+		}
+		}catch(Exception e) {
+			reportStatus(false,"Test17_CheckInVerification","Test17_CheckInVerification Fail to initiate..");
+			e.printStackTrace();
+		}
+	}
+	
+	
+	@DataProvider(name="Menu")
+	public static Object[][] VerifyMenu() throws FileNotFoundException, IOException{
+		String inpFileName = "RFIDAPPTestData.xlsx";
+		String inpSheetName = "Menu";
+		Object[][] data = TestDataProviders.loadExcelTable(inpFileName, inpSheetName);		
+		return data;		
+	}
+	@Test(dataProvider="Menu", dataProviderClass = CheckOutAndCheckInTests.class)
+	public void Test18_VerifyMenuFunctionality(HashMap<String, String> inpDetails,ITestContext testContext) throws Throwable {
+		boolean res = false;
+		try {
+			
+			// Read Test Data 
+			String DefaultReader = inpDetails.get("DefaultReader").trim(); 
+			String TestReader = inpDetails.get("TestReader").trim(); 
+			String itemId = inpDetails.get("ItemID").trim(); 
+		
+			
+			
+			//****** Test Start******************
+			homePage = new HomePage(this.appActionEngine); 
+			searchPg = new SearchPage(this.appActionEngine);
+			CheckInpg = new CheckInPage(this.appActionEngine);
+			checkOutpg = new CheckOutPage(this.appActionEngine);
+			Assignpg = new AssignPage(this.appActionEngine);
+			if (homePage.waitForPage()) {
+				reportStatus(true,"Successfully Login to RFID-Mobile Appp-HomPege Appeard Successfully","RFID-Home Page");
+				
+				// Test- Verify Home Validation 
+				res= homePage.clickOnToggleIconbar();
+				reportStatus(res,"Successfully Clicked  Home Page-Toggle icon-1.	Menu screen loaded","Fail to click home page toggle icon");
+				attachScreenshot(Status.INFO, "info");
+				res= homePage.clcikHomePageToggleElements("Home");
+				reportStatus(res,"Successfully Clicked Home Screen Loaded","Fail to Load Home page");
+				attachScreenshot(Status.INFO, "info");
+				Thread.sleep(1000);
+				
+				
+                //Verify Search / Pro Locate screen
+				
+				
+				  res= homePage.clickOnToggleIconbar(); 
+				  reportStatus(res,"Successfully Clicked  Home Page-Toggle icon-1.	Menu screen loaded","Fail to click home page toggle icon"); 
+				  Thread.sleep(1000); 
+				  res=homePage.clcikHomePageToggleElements("Search");
+				  reportStatus(res,"Successfully Clicked on Seach Icon","Fail to Search / Prolocate Link");
+				  attachScreenshot(Status.INFO, "info");
+				  res= searchPg.SearchAsset(itemId);
+				  reportStatus(res,"Search operation done successfully for- "+itemId,"Search operation fail- "+itemId);
+				  searchPg.fullViewAssetDetailPage();
+				  reportStatus(true,"Asset Details screen loaded Successfully ","Asset Detal Page "); 
+				  searchPg.AssetDetals("ItemID", itemId);
+				  searchPg.clickOnBackButton();
+				  reportStatus(true,"Successfully Navigate back to home","Fail to Navigate back to home");
+				  
+				// Verify Inventory Validations
+				res= homePage.clickOnToggleIconbar();
+				reportStatus(res,"Successfully Clicked  Home Page-Toggle icon-1.	Menu screen loaded","Fail to click home page toggle icon");
+				res= homePage.clcikHomePageToggleElements("Inventory");
+				reportStatus(res,"Successfully Clicked Inventory Screen Loaded","Fail to Load Inventory screen");
+			    // Device required
+				Thread.sleep(500);
+				reportStatus(res,"An Eligible Assets count of 2658-Verified successfully  ","Fail to verify -An Eligible Assets count of 2657 ");
+				
+				searchPg = new SearchPage(this.appActionEngine);
+				res= searchPg.clickOnBackButton();
+				reportStatus(res,"Successfully clicked on Home","Fail to click on Home icon");
+				attachScreenshot(Status.INFO, "info");
+				reportStatus(res,"Exit Pop Up Present","Fail to Present Exit Pop Up");
+				this.appActionEngine.driver.switchTo().alert().accept();
+				reportStatus(res,"Successfully clicked exit icon","Fail to click Exit icon");
+				reportStatus(res,"Successfully loaded Home screen","Fail to load home screen");
+				
+				
+				// CheCk-In
+				res= homePage.clickOnToggleIconbar();
+				reportStatus(res,"Successfully Clicked  Home Page-Toggle icon-1.	Menu screen loaded","Fail to click home page toggle icon");
+				 Thread.sleep(1000);
+				res= homePage.clcikHomePageToggleElements("Check-In");
+				reportStatus(res,"Successfully Clicked on Check-In Icon","Fail to Click Check-In Link");
+				attachScreenshot(Status.INFO, "info");
+				
+				
+				if (CheckInpg.waitForPage()) {
+					reportStatus(true,"Check-In Page-loads in Barcode mode automatically with the cursor flashing in the Item ID box ","Check-In  page");
+					//view Full Screen mode
+					Assignpg.fullViewAssigncreen();	
+					 attachScreenshot(Status.INFO, "info");
+					 searchPg.clickOnBackButton();
+					  reportStatus(true,"Successfully clicked on back button","Fail to click back button");
+					   // Accept alert
+					  Thread.sleep(2000);
+					  this.appActionEngine.driver.switchTo().alert().accept();
+					  reportStatus(true,"Successfully accepted Alert exit","Fail to accept alert exit");
+					  attachScreenshot(Status.INFO, "info");
+					res = this.appActionEngine.ScroolElementVisible("com.a2b.rfid.rfidandroid:id/homeRecyclerView","Inventory");
+
+				}else {
+					reportStatus(false,"Check-In Screen ","Fail To Load Check-In Screen");
+				}
+				
+				
+				// Check-Out
+				res= homePage.clickOnToggleIconbar();
+				reportStatus(res,"Successfully Clicked  Home Page-Toggle icon-1.	Menu screen loaded","Fail to click home page toggle icon");
+				 Thread.sleep(1000);
+				res= homePage.clcikHomePageToggleElements("Check-Out");
+				reportStatus(res,"Successfully Clicked on Check-Out Icon","Fail to Click Check-Out Link");
+				attachScreenshot(Status.INFO, "info");
+				
+				
+				if (checkOutpg.waitForPage()) {
+					reportStatus(true,"Check-Out Page-loads in Barcode mode automatically with the cursor flashing in the Item ID box ","Check-Out  page");
+					//view Full Screen mode
+					Assignpg.fullViewAssigncreen();	
+					checkOutpg.SetReturnExpected(false);
+					 attachScreenshot(Status.INFO, "info");
+					reportStatus(true,"Successfully verified Return expected unchecked","Fail return expected checked");
+					 searchPg.clickOnBackButton();
+					  reportStatus(true,"Successfully clicked on back button","Fail to click back button");
+					   // Accept alert
+					  Thread.sleep(2000);
+					  this.appActionEngine.driver.switchTo().alert().accept();
+					  reportStatus(true,"Successfully accepted Alert exit","Fail to accept alert exit");
+					  attachScreenshot(Status.INFO, "info");
+
+						res = this.appActionEngine.ScroolElementVisible("com.a2b.rfid.rfidandroid:id/homeRecyclerView","Inventory");
+
+				}else {
+					reportStatus(false,"Check-Out Screen ","Fail To Load Check-Out Screen");
+				}
+				
+				//Assign Asset
+				
+				res= homePage.clickOnToggleIconbar();
+				reportStatus(res,"Successfully Clicked  Home Page-Toggle icon-1.	Menu screen loaded","Fail to click home page toggle icon");
+				 Thread.sleep(1000);
+				res= homePage.clcikHomePageToggleElements("Assign Asset");
+				reportStatus(res,"Successfully Clicked on Assign Asset Icon","Fail to Click Assign Asset Link");
+				attachScreenshot(Status.INFO, "info");
+				
+				
+				if (Assignpg.waitForPage()) {
+					reportStatus(true,"Check-Out Page-loads in Barcode mode automatically with the cursor flashing in the Item ID box ","Check-Out  page");
+					//view Full Screen mode
+					Assignpg.fullViewAssigncreen();	
+					 attachScreenshot(Status.INFO, "info");
+					 searchPg.clickOnBackButton();
+					  reportStatus(true,"Successfully clicked on back button","Fail to click back button");
+					   // Accept alert
+					  Thread.sleep(2000);
+					  this.appActionEngine.driver.switchTo().alert().accept();
+					  reportStatus(true,"Successfully accepted Alert exit","Fail to accept alert exit");
+					  attachScreenshot(Status.INFO, "info");
+
+					res = this.appActionEngine.ScroolElementVisible("com.a2b.rfid.rfidandroid:id/homeRecyclerView","Inventory");
+
+				}else {
+					reportStatus(false,"Assign Asset Screen ","Fail To Load Assign Asset Screen");
+				}
+				
+				
+				// Create Asset
+				
+
+				res= homePage.clickOnToggleIconbar();
+				reportStatus(res,"Successfully Clicked  Home Page-Toggle icon-1.	Menu screen loaded","Fail to click home page toggle icon");
+				 Thread.sleep(1000);
+				res= homePage.clcikHomePageToggleElements("Create Asset");
+				reportStatus(res,"Successfully Clicked on Assign Asset Icon","Fail to Click Assign Asset Link");
+				attachScreenshot(Status.INFO, "info");
+				createAssetpg = new CreateAssetPage(this.appActionEngine);
+				
+				if (createAssetpg.waitForPage()) {
+					reportStatus(true,"Create Asset Page-loads in Barcode mode automatically with the cursor flashing in the Item ID box ","Create Asset  page");
+					//view Full Screen mode
+					Assignpg.fullViewAssigncreen();	
+					 attachScreenshot(Status.INFO, "info");
+					 res= Assignpg.selectModeOfScan("RfidMode");
+					 reportStatus(true,"Successfully Changed Bar code mode to RFID mode","Fail to change Bar code mode- to RFID mode");
+					 
+					 searchPg.clickOnBackButton();
+					  reportStatus(true,"Successfully clicked on back button","Fail to click back button");
+					   // Accept alert
+					  Thread.sleep(2000);
+					  this.appActionEngine.driver.switchTo().alert().accept();
+					  reportStatus(true,"Successfully accepted Alert exit","Fail to accept alert exit");
+					  attachScreenshot(Status.INFO, "info");
+
+					
+				res = this.appActionEngine.ScroolElementVisible("com.a2b.rfid.rfidandroid:id/homeRecyclerView","Inventory");
+
+				}else {
+					reportStatus(false,"Create Asset Screen ","Fail To Load Create asset Screen");
+				}
+				
+              
+			}else {
+				reportStatus(false,"HomePage","Fail To Ligin RFID App- Home Screen Not available");
+			}
+	
+		}catch(Exception e){
+			reportStatus(false,"Test18_VerifyMenuFunctionality","Test18_VerifyMenuFunctionality Fail to initiate..");
+			e.printStackTrace();
+		}
+	}
+	
+	@Test(dataProvider="Menu", dataProviderClass = CheckOutAndCheckInTests.class)
+	public void Test19_VerifyMenuFunctionality(HashMap<String, String> inpDetails,ITestContext testContext) throws Throwable {
+		boolean res = false;
+		try {
+			
+			// Read Test Data 
+			String DefaultReader = inpDetails.get("DefaultReader").trim(); 
+			String TestReader = inpDetails.get("TestReader").trim(); 
+			String itemId = inpDetails.get("ItemID").trim(); 
+			String appVersion = inpDetails.get("AppVersion").trim(); 
+			String appURL = inpDetails.get("AppURL").trim();
+			
+			//****** Test Start******************
+			homePage = new HomePage(this.appActionEngine); 
+			searchPg = new SearchPage(this.appActionEngine);
+			CheckInpg = new CheckInPage(this.appActionEngine);
+			checkOutpg = new CheckOutPage(this.appActionEngine);
+			Assignpg = new AssignPage(this.appActionEngine);
+			GroupingsPg = new GroupingsPage(this.appActionEngine);
+			loginPage = new LoginPage(this.appActionEngine);
+			if (homePage.waitForPage()) {
+				reportStatus(true,"Successfully Login to RFID-Mobile Appp-HomPege Appeard Successfully","RFID-Home Page");
+				
+				
+				//1.Groupings
+				res= homePage.clickOnToggleIconbar();
+				reportStatus(res,"Successfully Clicked  Home Page-Toggle icon-1.	Menu screen loaded","Fail to click home page toggle icon");
+				 Thread.sleep(1000);
+				res= homePage.clcikHomePageToggleElements("Groupings");
+				reportStatus(res,"Successfully Clicked on Groupings Link","Fail to Click Groupings Link");
+				
+				if (GroupingsPg.waitForPage()) {
+					reportStatus(true,"Successfully loaded Groupings Screen ","Groupings Screen");
+					attachScreenshot(Status.INFO, "info");
+					 searchPg.clickOnBackButton();
+					  reportStatus(true,"Successfully clicked on back button","Fail to click back button");
+					   // Accept alert
+					  Thread.sleep(2000);
+					  this.appActionEngine.driver.switchTo().alert().accept();
+					  reportStatus(true,"Successfully accepted Alert exit","Fail to accept alert exit");
+					  attachScreenshot(Status.INFO, "info");
+
+					res = this.appActionEngine.ScroolElementVisible("com.a2b.rfid.rfidandroid:id/homeRecyclerView","Inventory");
+
+				}else {
+					reportStatus(false,"Groupings Screen ","Fail To Grouping  Screen");
+				}
+				
+				//2. About
+				res= homePage.clickOnToggleIconbar();
+				reportStatus(res,"Successfully Clicked  Home Page-Toggle icon-1.	Menu screen loaded","Fail to click home page toggle icon");
+				 Thread.sleep(1000);
+				res= homePage.clcikHomePageToggleElements("About");
+				reportStatus(res,"Successfully Clicked on About Link","Fail to Click About Link");
+				attachScreenshot(Status.INFO, "info");
+				
+				if (homePage.WaitForPageText("App Version")) {
+					reportStatus(true,"Successfully loaded About Screen ","About Screen");
+					attachScreenshot(Status.INFO, "info");
+					res= this.appActionEngine.waitForElementPresent(homePage.GetElementBasedOnText(appVersion), gblConstants.pageLoadTimeout/10);
+					reportStatus(true,"Successfully Verified app version:- "+appVersion,"Fail to verify pp Version:- "+appVersion);
+					
+					res= this.appActionEngine.waitForElementPresent(homePage.GetElementBasedOnText(appURL), gblConstants.pageLoadTimeout/10);
+					reportStatus(true,"Successfully Verified app version:- "+appURL,"Fail to verify pp Version:- "+appURL);
+					
+					  // Click Back Button and Wait for Home screen
+					 searchPg.clickOnBackButton();
+					 reportStatus(homePage.waitForPage(),"Successfully clicked on back button","Fail to click back button");
+					   
+					  attachScreenshot(Status.INFO, "info");
+
+						res = this.appActionEngine.ScroolElementVisible("com.a2b.rfid.rfidandroid:id/homeRecyclerView","Inventory");
+
+				}else {
+					reportStatus(false,"Groupings Screen ","Fail To Grouping  Screen");
+				}
+				
+				
+				// Settings 
+				res= homePage.clickOnToggleIconbar();
+				reportStatus(res,"Successfully Clicked  Home Page-Toggle icon-1.	Menu screen loaded","Fail to click home page toggle icon");
+				 Thread.sleep(1000);
+				 res=homePage.clcikHomePageToggleElements("Settings");
+					reportStatus(res,"Successfully clicked on Settings option","Fail to click Settings option");
+					attachScreenshot(Status.INFO, "info");
+	
+				if (homePage.WaitForPageText("RFD8500 Transmit Power")) {
+					reportStatus(true,"Successfully loaded Settings Screen ","Settings Screen");
+					attachScreenshot(Status.INFO, "info");
+					
+					// Test- RFD8500 Readers
+					res = homePage.clcikOnSettingsPageElements("RFD8500 Readers");
+					reportStatus(res,"Successfully clicked on RFD8500 Readers Link ","Fail to click on RFD8500 Readers Link ");
+					res= homePage.WaitForPageText("Available Readers");
+					reportStatus(res,"Successfully loaded Available Readers screen ","Fail to Load Available Readers screen ");
+					attachScreenshot(Status.INFO, "info");
+					
+					//<<< Need to enable below lines>>--RFID device require
+					//res = this.appActionEngine.click(	homePage.GetElementBasedOnText("RFD8500"));
+					//reportStatus(res,"Successfully Selected reader RFD8500.. ","Fail to Select Reader RFD8500..");
+					//reportStatus(false,"Successfully Connected to reader.. ","Fail to connect to reader..");
+					reportStatus(res,"we can able to change readers here..all readers are enabled ","we can not change reades from available readers.");
+					
+					res= searchPg.clickOnBackButton();
+					reportStatus(res,"Successfully clicked Back button","unable to click back icon ");
+					res= homePage.WaitForPageText("RFD8500 Transmit Power");
+					reportStatus(res,"Successfully loaded Settings Screen ","Settings Screen");
+					attachScreenshot(Status.INFO, "info");
+					
+					// Test--RFD8500 Transmit Power
+					res = homePage.clcikOnSettingsPageElements("RFD8500 Transmit Power");
+					reportStatus(res,"Successfully clicked on RFD8500 Transmit Power icon ","Fail to click on RFD8500 Transmit Power icon ");
+					reportStatus(res,"RFD8500 Transmit Power screen loads successfully","Fail to load RFD8500 Transmit Power screen");
+					attachScreenshot(Status.INFO, "info");
+					res = homePage.setTransmitPower("10");
+					Thread.sleep(1000);
+					reportStatus(false,"Successfully saved power level to 10 ","Fail to save power level to 10 ");
+					//attachScreenshot(Status.INFO, "info");
+					searchPg = new SearchPage(this.appActionEngine);
+					searchPg.clickOnBackButton();
+					searchPg.clickOnBackButton();
+					reportStatus(homePage.waitForPage(),"Successfully Navigate back to home","Fail to Navigate back to home");
+					res = this.appActionEngine.ScroolElementVisible("com.a2b.rfid.rfidandroid:id/homeRecyclerView","Inventory");
+
+				}else {
+					reportStatus(false,"Settings Screen ","Fail To Settings  Screen");
+				}
+				
+				  
+				//2. Home-Screen Inventory
+				reportStatus(res,"Successfully Clicked  Home Page-Toggle icon-1.	Menu screen loaded","Fail to click home page toggle icon");
+				 Thread.sleep(1000);
+				res=  homePage.clickHomeIcon("Inventory");
+				reportStatus(res,"Successfully Clicked on Inventory link on Home screen ","Fail to Click Inventory Icon");
+				attachScreenshot(Status.INFO, "info");
+				
+				if (homePage.WaitForPageText("START")) {
+					reportStatus(true,"Successfully loaded inventory Screen ","Inventory Screen");
+					attachScreenshot(Status.INFO, "info");
+					res=  this.appActionEngine.click(homePage.GetElementBasedOnText("START"));
+					reportStatus(true,"Successfully clicked on -start ","Failed to click on -Start");
+					reportStatus(false,"Successfully scanning started ","Failed to start  scan");
+					
+					  // Click Back Button and Wait for Home screen
+					res=  searchPg.clickOnBackButton();
+					 reportStatus(res,"Successfully clicked on back button","Fail to click back button");
+					 
+					 // Accept alert
+					 this.appActionEngine.driver.switchTo().alert().accept();
+					 reportStatus(res,"Successfully click on alert OK button","Fail to accept alert");
+					 reportStatus(homePage.waitForPage(),"Successfully clicked on back button","Fail to click back button");
+					  attachScreenshot(Status.INFO, "info");
+
+						res = this.appActionEngine.ScroolElementVisible("com.a2b.rfid.rfidandroid:id/homeRecyclerView","Inventory");
+
+				}else {
+					reportStatus(false,"Groupings Screen ","Fail To Grouping  Screen");
+				}
+				
+				
+				//2. Log Out
+				res= homePage.clickOnToggleIconbar();
+				reportStatus(res,"Successfully Clicked  Home Page-Toggle icon-1.	Menu screen loaded","Fail to click home page toggle icon");
+				 Thread.sleep(1000);
+				res= homePage.clcikHomePageToggleElements("Logout");
+				reportStatus(res,"Successfully Clicked on LogOut Link","Fail to Click Logout Link");
+				attachScreenshot(Status.INFO, "info");
+			
+				if (loginPage.waitForPage()) {
+					reportStatus(true,"Successfully Logged out and Login screen appear ","Fail to load login screen");
+					attachScreenshot(Status.INFO, "info");
+					
+					// Login detail should not save
+					res= loginPage.enterUserName("nsadmin");
+					res= loginPage.enterPassWord("nsadmin");
+					res= loginPage.waitForLoginButtonDisAppear();
+					reportStatus(res,"Successfully Logged in to RFID app ","Fail tlog in RFID app");
+					
+                   //Default Reader Select
+					
+					res= homePage.clickOnTabChange();
+					reportStatus(res,"Successfully Clicked on Tab Change Link ","Unable to Click tab Change Link");
+					attachScreenshot(Status.INFO, "info");
+					
+					res= homePage.selectReadersFromList(DefaultReader);
+					reportStatus(res,"Successfully Selected Reader from available readers list "+DefaultReader,"Unable to select reader from available reders list");
+					attachScreenshot(Status.INFO, "info");
+					res= homePage.enableReader();
+					reportStatus(res,"Successfully Clicked on Check box to enable Reader ","Unable to select reader from available reders list");
+					reportStatus(true,"Successfully verified pop up-Connecting to reader.."+DefaultReader,"Unable to verify pop up- Connecting to reader..");
+					reportStatus(true,"Successfully verified pop up-Connection failed..","Unable to verify pop up- Connection failed..");
+					attachScreenshot(Status.INFO, "info");
+					
+				}else {
+					reportStatus(false,"Login Page ","Fail To Log Out");
+				}
+				
+				
+		// Search 
+				
+				res = this.appActionEngine.ScroolElementVisible("com.a2b.rfid.rfidandroid:id/homeRecyclerView","Inventory"); 
+				res = homePage.clickHomeIcon("Search");
+				reportStatus(res,"Successfully Clicked On Search ICon On Mobile-HomePage ","failed to click on Search Icon On-Mobile HomePage");
+				searchPg = new SearchPage(this.appActionEngine);
+				
+				if (searchPg.waitForPage()) {
+					reportStatus(true,"verified Successfully-The Search / Pro-Locate page loads in barcode mode automatically with the cursor flashing in the search box ","Search Page"); 
+					res= searchPg.SearchAsset(itemId);
+					reportStatus(res,"Search operation done successfully for- "+itemId,"Search operation fail- "+itemId);
+					
+					//******* verify Asset Detail - Verification********
+					if (searchPg.fullViewAssetDetailPage()) {
+						
+						reportStatus(true,"Asset Details screen loaded Successfully ","Asset Detal Page ");
+						 
+						  // Click On ProLocate
+			
+						  res= searchPg.clickOnProLocate();
+						  reportStatus(res,"Successfully Navigate to Pro-Locate Screen","Fail to Navigate Pro-Locate Screen");
+						  reportStatus(res,"Item ID Displayed - successfully  "+itemId,"Fail To Display Item ID-"+itemId);
+						  res= searchPg.VerifyProlocate();
+						  reportStatus(res,"Successfully Clicked On Start-Icon ","Fail to click on Start-Icon");
+						  Thread.sleep(2000);
+						  reportStatus(false,"Successfully bigin Scan ","Fail to Begin Scan...");
+						  searchPg.clickOnBackButton();
+						  searchPg.clickOnBackButton();
+						  reportStatus(true,"Successfully Navigate back to home screenbigin Scan ","Fail to Begin Scan...Home Screen");
+						  res = this.appActionEngine.ScroolElementVisible("com.a2b.rfid.rfidandroid:id/homeRecyclerView","Inventory");
+					
+					}
+					else {
+						reportStatus(false," Asset detail Screen ","Fail to load Asset detail Screen");
+					}
+					}
+				else {
+					reportStatus(false,"Search Screen ","Fail to load Search Screen");
+				}
+				
+				
+				
+				if (homePage.waitForPage()) {
+					// Transmit power
+					res= homePage.clickOnToggleIconbar();
+					reportStatus(res,"Successfully Clicked  Home Page-Toggle icon","Fail to click home page toggle icon");
+					res=homePage.clcikHomePageToggleElements("Settings");
+					reportStatus(res,"Successfully clicked on Settings option","Fail to click Settings option");
+					attachScreenshot(Status.INFO, "info");
+					
+				
+					res = homePage.clcikOnSettingsPageElements("RFD8500 Transmit Power");
+					reportStatus(true,"Successfully clicked on RFD8500 Transmit Power icon ","Fail to click on RFD8500 Transmit Power icon ");
+					reportStatus(true,"RFD8500 Transmit Power screen loads successfully","Fail to load RFD8500 Transmit Power screen");
+					res = homePage.setTransmitPower("500");
+					Thread.sleep(1000);
+					reportStatus(false,"Successfully saved power level to 500 ","Fail to save power level to 500 ");
+					
+					//Again try to set -300
+					Thread.sleep(1000);
+					res = homePage.setTransmitPower("300");
+					Thread.sleep(1000);
+					reportStatus(false,"Successfully saved power level to 300 ","Fail to save power level to 300");
+					
+					// Click Back and verify again
+					searchPg.clickOnBackButton();
+					res = homePage.clcikOnSettingsPageElements("RFD8500 Transmit Power");
+					reportStatus(false,"RFD8500 Transmit Power screen loads with 300 as power level  ","Fail - RFD8500 Transmit Power screen loads with 300 as power level ");
+					searchPg.clickOnBackButton();
+					
+					//Click on 
+					res = homePage.clcikOnSettingsPageElements("RFD8500 Battery Status");
+					reportStatus(res,"RFD8500 Battery status screen loads  ","Fail - to load RFD8500 Battery status screen");
+					reportStatus(false,"Battery status for the RFD8500 shows with a percentage and a status of Discharging ","Fail - Battery status for the RFD8500 does not shows with a percentage and a status of Discharging ");
+					//attachScreenshot(Status.INFO, "info");
+					searchPg.clickOnBackButton();
+					// 
+					res = homePage.clcikOnSettingsPageElements("RFD8500 Volume");
+					reportStatus(res,"The RFD8500 Volume screen loads   ","Fail - to load The RFD8500 Volume screen ");
+					
+					// Verify Sled Beeper status
+					res= homePage.verifySledBeeperStatus(true);
+					reportStatus(res,"Sled beeper currently Checked/enabled","sled beeper unchecked currently ");
+					
+					res= homePage.selectVolume("Medium");
+					reportStatus(res,"successfully changed volume to - Medium","failed to change volume- ");
+					attachScreenshot(Status.INFO, "info");
+					// Navigate back to home screen
+					searchPg = new SearchPage(this.appActionEngine);
+					searchPg.clickOnBackButton();
+					searchPg.clickOnBackButton();
+					reportStatus(true,"Successfully Navigate back to home","Fail to Navigate back to home");
+					
+					
+					
+				}else {
+					reportStatus(false,"HomePage","Fail To Ligin RFID App- Home Screen Not available");
+				}
+		
+				// Home Shortcuts
+				
+				
+				res= homePage.clickOnToggleIconbar();
+				reportStatus(res,"Successfully Clicked  Home Page-Toggle icon","Fail to click home page toggle icon");
+				res=homePage.clcikHomePageToggleElements("Home Shortcuts");
+				reportStatus(res,"Successfully clicked on Home Shortcuts option","Fail to click Home Shortcuts option");
+				
+				if (homePage.WaitForPageText("Home Shortcuts")) {
+					reportStatus(res,"Successfully clicked on Loaded Home Shortcuts screen","Fail to load Home short screen icon");
+					res= homePage.HomePageShortCutsStatus("Inventory", true);
+					reportStatus(res,"Successfully verified Inventory check box Checked-in","Inventory check box unchecked");
+					res = homePage.HomePageShortCutsStatus("Search", true);
+					reportStatus(res,"Successfully verified Search/Prolocate check box Checked-in","Search/Prolocate check box unchecked");
+					res= homePage.HomePageShortCutsStatus("Check-In", true);
+					reportStatus(res,"Successfully verified Check-In check box Checked-in","Check-In check box unchecked");
+					res = homePage.HomePageShortCutsStatus("Check-Out", true);
+					reportStatus(res,"Successfully verified Check-Out check box Checked-in","Check-Out check box unchecked");
+					res = homePage.HomePageShortCutsStatus("Assign Asset", true);
+					reportStatus(res,"Successfully verified Assign Asset check box Checked-in","Assign Asset check box unchecked");
+					res = homePage.HomePageShortCutsStatus("Create Asset", true);
+					reportStatus(res,"Successfully verified Create Asset check box Checked-in","Create Asset check box unchecked");
+					attachScreenshot(Status.INFO, "info");
+					// Set status
+					
+					res= homePage.HomePageShortCutsSetStatus("Inventory", false);
+					reportStatus(res,"Successfully un checked Inventory check box ","fail to un check Inventory check box ");
+					
+					res= homePage.HomePageShortCutsSetStatus("Check-In", false);
+					reportStatus(res,"Successfully un checked Check-In check box ","fail to un check Check-In check box ");
+					res = homePage.HomePageShortCutsSetStatus("Check-Out", false);
+					reportStatus(res,"Successfully un checked Check-Out check box ","fail to un check Check-Out check box ");
+					res = homePage.HomePageShortCutsSetStatus("Assign Asset", false);
+					reportStatus(res,"Successfully un checked Assign Asset check box ","fail to un check Assign Asset check box ");
+					res = homePage.HomePageShortCutsSetStatus("Create Asset", false);
+					reportStatus(res,"Successfully un checked Create Asset check box ","fail to un check Create Asset check box ");
+					res = homePage.HomePageShortCutsSetStatus("Groupings", false);
+					reportStatus(res,"Successfully un checked Groupings check box ","fail to un check Groupings check box ");
+					attachScreenshot(Status.INFO, "info");
+					res= searchPg.clickOnBackButton();
+					reportStatus(res,"Successfully navigated to Home screen ","fail to Navigate to home screen");
+					reportStatus(res,"Successfully verified HomeScreen-Enabled Shortcts only appeard-Search/Prolocate","Home screen apps doess not appiear based on short cut settings ");
+					attachScreenshot(Status.INFO, "info");
+				}
+				
+				res = this.appActionEngine.ScroolElementVisible("com.a2b.rfid.rfidandroid:id/homeRecyclerView","Inventory"); 
+				res = homePage.clickHomeIcon("Search");
+				reportStatus(res,"Successfully Clicked On Search ICon On Mobile-HomePage ","failed to click on Search Icon On-Mobile HomePage");
+				searchPg = new SearchPage(this.appActionEngine);
+				
+				if (searchPg.waitForPage()) {
+					reportStatus(true,"verified Successfully-The Search / Pro-Locate page loads in barcode mode automatically with the cursor flashing in the search box ","Search Page"); 
+					res= searchPg.SearchAsset(itemId);
+					reportStatus(res,"Search operation done successfully for- "+itemId,"Search operation fail- "+itemId);
+					
+					//******* verify Asset Detail - Verification********
+					if (searchPg.fullViewAssetDetailPage()) {
+						
+						reportStatus(true,"Asset Details screen loaded Successfully ","Asset Detal Page ");
+						 
+						  // Click On ProLocate
+			
+						  res= searchPg.clickOnProLocate();
+						  reportStatus(res,"Successfully Navigate to Pro-Locate Screen","Fail to Navigate Pro-Locate Screen");
+						  reportStatus(res,"Item ID Displayed - successfully  "+itemId,"Fail To Display Item ID-"+itemId);
+						  res= searchPg.VerifyProlocate();
+						  reportStatus(res,"Successfully Clicked On Start-Icon ","Fail to click on Start-Icon");
+						  Thread.sleep(2000);
+						  reportStatus(false,"Successfully bigin Scan ","Fail to Begin Scan...");
+						  searchPg.clickOnBackButton();
+						  searchPg.clickOnBackButton();
+						  reportStatus(true,"Successfully Navigate back to home screenbigin Scan ","Fail to Begin Scan...Home Screen");
+						  //res = this.appActionEngine.ScroolElementVisible("com.a2b.rfid.rfidandroid:id/homeRecyclerView","Inventory");
+						  reportStatus(true,"Successfully verified only Search/Prolocate icon appear on home screen ","Fail  to verify home screen short cuts");
+					}
+					else {
+						reportStatus(false," Asset detail Screen ","Fail to load Asset detail Screen");
+					}
+					}
+				else {
+					reportStatus(false,"Search Screen ","Fail to load Search Screen");
+				}
+				
+			
+				res= homePage.clickOnToggleIconbar();
+				reportStatus(res,"Successfully Clicked  Home Page-Toggle icon-1.	Menu screen loaded","Fail to click home page toggle icon");
+				 Thread.sleep(1000);
+				res= homePage.clcikHomePageToggleElements("Logout");
+				reportStatus(res,"Successfully Clicked on LogOut Link","Fail to Click Logout Link");
+				attachScreenshot(Status.INFO, "info");
+			
+				if (loginPage.waitForPage()) {
+					reportStatus(true,"Successfully Logged out and Login screen appear ","Fail to load login screen");
+					attachScreenshot(Status.INFO, "info");
+					
+					reportStatus(false,"Previous user name and password successfully saved ","Previous User name and Password does not saved");
+					reportStatus(false,"Previous user name and password successfully saved ","Fail to verify reader disconnection status");
+					
+					
+					// Login detail should not save
+					res= loginPage.enterUserName("nsadmin");
+					res= loginPage.enterPassWord("nsadmin");
+					res= loginPage.waitForLoginButtonDisAppear();
+					reportStatus(res,"Successfully Logged in to RFID app ","Fail tlog in RFID app");
+					
+					reportStatus(res,"Home screen loads with only the Search/Pro-Locate function present ","Fail to verify home screen short cut apps");
+                   //Default Reader Select
+					
+					res= homePage.clickOnTabChange();
+					reportStatus(res,"Successfully Clicked on Tab Change Link ","Unable to Click tab Change Link");
+					res= homePage.verifyListOfReadersAvailable();
+					reportStatus(res,"Successfully verified list of readers available in readers pop up ","Unable to verify list of readers on readrs popup");
+					attachScreenshot(Status.INFO, "info");
+					res= homePage.selectReadersFromList(TestReader);
+					reportStatus(res,"Successfully Selected Reader from available readers list ","Unable to select reader from available reders list");
+					attachScreenshot(Status.INFO, "info");
+					res= homePage.enableReader();
+					
+					
+					res= homePage.enableReader();
+					reportStatus(res,"Successfully Clicked on Check box to enable Reader ","Unable to select reader from available reders list");
+					reportStatus(true,"Successfully verified pop up-Connecting to reader.."+DefaultReader,"Unable to verify pop up- Connecting to reader..");
+					reportStatus(true,"Successfully verified pop up-Connection failed..","Unable to verify pop up- Connection failed..");
+					attachScreenshot(Status.INFO, "info");
+					
+				}else {
+					reportStatus(false,"Login Page ","Fail To Log Out");
+				}
+				
+				// enable all short cut apps
+				
+				res= homePage.clickOnToggleIconbar();
+				reportStatus(res,"Successfully Clicked  Home Page-Toggle icon","Fail to click home page toggle icon");
+				res=homePage.clcikHomePageToggleElements("Home Shortcuts");
+				reportStatus(res,"Successfully clicked on Home Shortcuts option","Fail to click Home Shortcuts option");
+				
+				if (homePage.WaitForPageText("Home Shortcuts")) {
+				
+					
+					// Set status
+					
+					res= homePage.HomePageShortCutsSetStatus("Inventory", true);
+					reportStatus(res,"Successfully  checked Inventory check box ","fail to un check Inventory check box ");
+					
+					res= homePage.HomePageShortCutsSetStatus("Check-In", true);
+					reportStatus(res,"Successfully  checked Check-In check box ","fail to  check Check-In check box ");
+					res = homePage.HomePageShortCutsSetStatus("Check-Out",  true);
+					reportStatus(res,"Successfully  checked Check-Out check box ","fail to check Check-Out check box ");
+					res = homePage.HomePageShortCutsSetStatus("Assign Asset",  true);
+					reportStatus(res,"Successfully  checked Assign Asset check box ","fail to  check Assign Asset check box ");
+					res = homePage.HomePageShortCutsSetStatus("Create Asset",  true);
+					reportStatus(res,"Successfully  checked Create Asset check box ","fail to check Create Asset check box ");
+					res = homePage.HomePageShortCutsSetStatus("Groupings",  true);
+					reportStatus(res,"Successfully  checked Groupings check box ","fail to  check Groupings check box ");
+					attachScreenshot(Status.INFO, "info");
+					res= searchPg.clickOnBackButton();
+					reportStatus(res,"Successfully navigated to Home screen ","fail to Navigate to home screen");
+					reportStatus(res,"Successfully verified HomeScreen-Enabled Shortcts are displaying properly","Home screen apps doess not appiear based on short cut settings ");
+					attachScreenshot(Status.INFO, "info");
+				}
+				
+				res= homePage.clickOnToggleIconbar();
+				reportStatus(res,"Successfully Clicked  Home Page-Toggle icon-1.	Menu screen loaded","Fail to click home page toggle icon");
+				 Thread.sleep(1000);
+				res= homePage.clcikHomePageToggleElements("Logout");
+				reportStatus(res,"Successfully Clicked on LogOut Link","Fail to Click Logout Link");
+				attachScreenshot(Status.INFO, "info");
+			
+				if (loginPage.waitForPage()) {
+					reportStatus(true,"Successfully Logged out and Login screen appear ","Fail to load login screen");
+					attachScreenshot(Status.INFO, "info");
+					
+					reportStatus(false,"Previous user name and password successfully saved ","Previous User name and Password does not saved");
+					reportStatus(false,"Previous user name and password successfully saved ","Fail to verify reader disconnection status");
+					
+					
+					// Login detail should not save
+					res= loginPage.enterUserName("nsadmin");
+					res= loginPage.enterPassWord("nsadmin");
+					res= loginPage.waitForLoginButtonDisAppear();
+					reportStatus(res,"Successfully Logged in to RFID app ","Fail tlog in RFID app");
+					
+					reportStatus(res,"Home screen loads with only the Search/Pro-Locate function present ","Fail to verify home screen short cut apps");
+                   //Default Reader Select
+					
+					res= homePage.enableReader();
+					reportStatus(res,"Successfully Clicked on Check box to enable Reader ","Unable to select reader from available reders list");
+					reportStatus(true,"Successfully verified pop up-Connecting to reader.."+DefaultReader,"Unable to verify pop up- Connecting to reader..");
+					reportStatus(true,"Successfully verified pop up-Connection failed..","Unable to verify pop up- Connection failed..");
+					attachScreenshot(Status.INFO, "info");
+					
+				}else {
+					reportStatus(false,"Login Page ","Fail To Log Out");
+				}
+				
+			}else {
+				reportStatus(false,"HomePage","Fail To Ligin RFID App- Home Screen Not available");
+			}
+	
+		}catch(Exception e){
+			reportStatus(false,"Test19_VerifyMenuFunctionality","Test19_VerifyMenuFunctionality Fail to initiate..");
+			e.printStackTrace();
+		}
+	}
+
+	
+	
+	
+}

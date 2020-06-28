@@ -1,0 +1,186 @@
+package a2b.mobile.Home.tests;
+
+import org.testng.annotations.Parameters;
+
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.Random;
+
+import org.openqa.selenium.WebElement;
+import org.testng.ITestContext;
+import org.testng.annotations.AfterClass;
+import org.testng.annotations.AfterSuite;
+import org.testng.annotations.BeforeClass;
+import org.testng.annotations.DataProvider;
+import org.testng.annotations.Parameters;
+import org.testng.annotations.Test;
+
+import com.aventstack.extentreports.ExtentTest;
+import com.aventstack.extentreports.Status;
+import com.beust.jcommander.Parameter;
+
+import a2b.core.fileutils.TestDataProviders;
+import a2b.core.logs.LogManager;
+import a2b.mobile.android.engine.A2BMobileTestEngine;
+import a2b.mobile.android.pages.*;
+import io.appium.java_client.MobileBy;
+
+
+public class HomePageTest extends A2BMobileTestEngine {
+
+	private HomePage homePage;
+	private SearchPage searchPg;
+	private String className = HomePageTest.class.getName();
+	
+//*****************************************************************
+	
+	@BeforeClass
+	public void login() throws Throwable {
+		try {
+			tcReport = super.tcReport;
+			if (loginUsingDefaultUser()) {
+				LogManager.logInfo(this.className ,"Successfully logged into RFID Mobile APp");
+				
+			} else {
+				LogManager.logInfo(this.className,"Unable to Log Into ICM GUI");
+			}
+
+		} catch (Exception e) {
+			e.printStackTrace();
+			LogManager.logException(e, className, "Exception to login into  ICM GUI application");
+		}
+	} 
+	
+	
+
+	@DataProvider(name="Readers")
+	public static Object[][] CreateAlertsWithMultipleSites() throws FileNotFoundException, IOException{
+		String inpFileName = "Home.xlsx";
+		String inpSheetName = "Readers";
+		Object[][] data = TestDataProviders.loadExcelTable(inpFileName, inpSheetName);		
+		return data;		
+	}
+
+	@Test(dataProvider="Readers", dataProviderClass = HomePageTest.class)
+	public void verifyReadersFuctionality(HashMap<String, String> inpDetails,ITestContext testContext) throws Throwable {
+		boolean res = false;
+		try {
+			
+			// Read Test Data 
+			String DefaultReader = inpDetails.get("DefaultReader").trim(); 
+			String TestReader = inpDetails.get("TestReader").trim(); 
+			//****** Test Start******************
+			homePage = new HomePage(this.appActionEngine); 	
+			if (homePage.waitForPage()) {
+				reportStatus(true,"Successfully Login to RFID-Mobile Appp-HomPege Appeard Successfully","RFID-Home Page");
+				res= homePage.verifyRedDotExist();
+				reportStatus(res,"Successfully verified Red Dot Icon -No reader Connected","Failed to verify red dat icon-near battery");
+				res= homePage.clickOnTabChange();
+				reportStatus(res,"Successfully Clicked on Tab Change Link ","Unable to Click tab Change Link");
+				Thread.sleep(3000);
+				res= homePage.VirifyReadersPopUpExist(true);
+				reportStatus(res,"Readers pop up loaded..Successfully ","Unable to Load Readers Pop Up");
+				res= homePage.clickOnReadersPopUPCancleBtn();
+				reportStatus(res,"Successfully clicked Readers Pop up cancel Button ","Unable to click readers pop up cancel button");
+				res= homePage.VirifyReadersPopUpExist(false);
+				reportStatus(res,"Successfully verified Readers pop up disappeared  ","Readers pop up exist even click on cancle button");
+				res= homePage.clickOnTabChange();
+				reportStatus(res,"Successfully Clicked on Tab Change Link ","Unable to Click tab Change Link");
+				res= homePage.verifyListOfReadersAvailable();
+				reportStatus(res,"Successfully verified list of readers available in readers pop up ","Unable to verify list of readers on readrs popup");
+				attachScreenshot(Status.INFO, "info");
+				res= homePage.selectReadersFromList(TestReader);
+				reportStatus(res,"Successfully Selected Reader from available readers list ","Unable to select reader from available reders list");
+				attachScreenshot(Status.INFO, "info");
+				res= homePage.enableReader();
+				reportStatus(res,"Successfully Clicked on Check box to enable Reader ","Unable to select reader from available reders list");
+				reportStatus(true,"Successfully verified pop up-Connecting to reader.."+TestReader,"Unable to verify pop up- Connecting to reader..");
+				reportStatus(true,"Successfully verified pop up-Connection failed..","Unable to verify pop up- Connection failed..");
+				
+				//homePage.waitForText("Connection");
+			    Thread.sleep(10000);
+				attachScreenshot(Status.INFO, "info");
+				//Default Reader Select
+				
+				res= homePage.clickOnTabChange();
+				reportStatus(res,"Successfully Clicked on Tab Change Link ","Unable to Click tab Change Link");
+				attachScreenshot(Status.INFO, "info");
+				
+				res= homePage.selectReadersFromList(DefaultReader);
+				reportStatus(res,"Successfully Selected Reader from available readers list "+DefaultReader,"Unable to select reader from available reders list");
+				attachScreenshot(Status.INFO, "info");
+				res= homePage.enableReader();
+				reportStatus(res,"Successfully Clicked on Check box to enable Reader ","Unable to select reader from available reders list");
+				reportStatus(true,"Successfully verified pop up-Connecting to reader.."+DefaultReader,"Unable to verify pop up- Connecting to reader..");
+				reportStatus(true,"Successfully verified pop up-Connection failed..","Unable to verify pop up- Connection failed..");
+				attachScreenshot(Status.INFO, "info");
+				
+				
+				//******** Rest Of the Steps Device Require-Manual Steps- Need to Turn ON RFD8500********
+				
+				
+			}else {
+				reportStatus(false,"Failed to Login - Home page not available","Home page");
+			}
+	
+		}catch(Exception e){
+			
+		}
+	}
+	
+	
+
+	@Test(dataProvider="Readers", dataProviderClass = HomePageTest.class)
+	public void Set_RFD8500_TransmitPower(HashMap<String, String> inpDetails,ITestContext testContext) throws Throwable {
+		boolean res = false;
+		try {
+			
+			// Read Test Data 
+			String DefaultReader = inpDetails.get("DefaultReader").trim(); 
+			String TestReader = inpDetails.get("TestReader").trim(); 
+			//****** Test Start******************
+			homePage = new HomePage(this.appActionEngine); 	
+			if (homePage.waitForPage()) {
+				reportStatus(true,"Successfully Login to RFID-Mobile Appp-HomPege Appeard Successfully","RFID-Home Page");
+				res= homePage.clickOnToggleIconbar();
+				reportStatus(res,"Successfully Clicked  Home Page-Toggle icon","Fail to click home page toggle icon");
+				res= homePage.scroolHomeTogglePageUP();
+				reportStatus(res,"Successfully scroll up toggle options","scroll up toggle options- failed");
+				res=homePage.clcikHomePageToggleElements("Settings");
+				reportStatus(res,"Successfully clicked on Settings option","Fail to click Settings option");
+				attachScreenshot(Status.INFO, "info");
+				res = homePage.clcikOnSettingsPageElements("RFD8500 Transmit Power");
+				reportStatus(true,"Successfully clicked on RFD8500 Transmit Power icon ","Fail to click on RFD8500 Transmit Power icon ");
+				reportStatus(true,"RFD8500 Transmit Power screen loads successfully","Fail to load RFD8500 Transmit Power screen");
+				res = homePage.setTransmitPower("300");
+				Thread.sleep(1000);
+				reportStatus(false,"Successfully saved power level to 300 ","Fail to save power level to 300 ");
+				//attachScreenshot(Status.INFO, "info");
+				searchPg = new SearchPage(this.appActionEngine);
+				searchPg.clickOnBackButton();
+				searchPg.clickOnBackButton();
+				reportStatus(true,"Successfully Navigate back to home","Fail to Navigate back to home");
+				
+				
+			}else {
+				reportStatus(false,"HomePage","Fail To Ligin RFID App- Home Screen Not available");
+			}
+	
+		}catch(Exception e){
+			
+		}
+	}
+	
+	
+	
+	
+@AfterClass(alwaysRun=true)
+public void logOut() {
+	//homePage.LogOut();
+}
+
+
+}

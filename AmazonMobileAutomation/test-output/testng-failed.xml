@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE suite SYSTEM "http://testng.org/testng-1.0.dtd">
+<suite name="Failed suite [Amazon-Mobile]">
+  <parameter name="DeviceUT" value="RZ8M840NG3F"/>
+  <parameter name="AppTestEnv" value="QA-Environment"/>
+  <parameter name="AppiumVerNo" value="1.14.2"/>
+  <parameter name="AppUT" value="Amazon-Android"/>
+  <parameter name="AppiumServerUrl" value="http://0.0.0.0:4723"/>
+  <listeners>
+    <listener class-name="amazon.core.listeners.TestNGListener"/>
+  </listeners>
+  <test thread-count="5" name="Amazon Tracking-Mobile: Smoke tests(failed)">
+    <classes>
+      <class name="amazon.mobile.AppTest.AmazonAppTests">
+        <methods>
+          <include name="login"/>
+          <include name="beforeSuite"/>
+          <include name="afterClass"/>
+          <include name="afterSuite"/>
+          <include name="afterTest"/>
+          <include name="flushReport"/>
+          <include name="beforeTest"/>
+          <include name="TC01AddToCartAndVerify" invocation-numbers="0">
+            <parameter name="testCaseName" value="Add Product to cart and Verify on Check out screen"/>
+          </include> <!-- TC01AddToCartAndVerify -->
+          <include name="beforeMethod"/>
+        </methods>
+      </class> <!-- amazon.mobile.AppTest.AmazonAppTests -->
+    </classes>
+  </test> <!-- Amazon Tracking-Mobile: Smoke tests(failed) -->
+</suite> <!-- Failed suite [Amazon-Mobile] -->

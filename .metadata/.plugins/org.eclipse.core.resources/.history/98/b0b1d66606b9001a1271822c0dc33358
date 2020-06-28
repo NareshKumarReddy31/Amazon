@@ -1,0 +1,94 @@
+package a2b.mobile.Phase_5;
+
+
+import org.testng.annotations.Parameters;
+
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.Random;
+
+import org.testng.ITestContext;
+import org.testng.annotations.AfterClass;
+import org.testng.annotations.AfterSuite;
+import org.testng.annotations.BeforeClass;
+import org.testng.annotations.DataProvider;
+import org.testng.annotations.Parameters;
+import org.testng.annotations.Test;
+import com.aventstack.extentreports.Status;
+
+import a2b.core.fileutils.TestDataProviders;
+import a2b.core.logs.LogManager;
+
+import a2b.mobile.android.pages.*;
+import amazon.core.accelerators.AppiumActionEngine.DIRECTION;
+import amazon.mobile.android.engine.A2BMobileTestEngine;
+
+
+public class CreateAssetTests extends A2BMobileTestEngine {
+	
+	private LoginPage loginPage;
+
+	
+	
+	private String className = CreateAssetTests.class.getName();;
+	
+	@BeforeClass
+	public void login() throws Throwable {
+		try {
+			tcReport = super.tcReport;
+			if (loginUsingDefaultUser()) {
+				LogManager.logInfo(this.className ,"Successfully logged into RFID Mobile APp");
+				
+			} else {
+				LogManager.logInfo(this.className,"Unable to Log Into ICM GUI");
+			}
+
+		} catch (Exception e) {
+			e.printStackTrace();
+			LogManager.logException(e, className, "Exception to login into  ICM GUI application");
+		}
+	} 
+	
+	
+	
+	@DataProvider(name="CreateAsset")
+	public static Object[][] CreateAlertsWithMultipleSites() throws FileNotFoundException, IOException{
+		String inpFileName = "RFIDAPPTestData.xlsx";
+		String inpSheetName = "CreateAsset";
+		Object[][] data = TestDataProviders.loadExcelTable(inpFileName, inpSheetName);		
+		return data;		
+	}
+
+	@Test(dataProvider="CreateAsset", dataProviderClass = CreateAssetTests.class)
+	public void Test01_CreateAsset(HashMap<String, String> inpDetails,ITestContext testContext) throws Throwable {
+		boolean res = false;	
+		// Read Test Data 
+		String errMsg = inpDetails.get("ErrorMsg").trim();
+		
+
+	//	homePage = new HomePage(this.appActionEngine);		
+		try {		
+		//homePage.RefreshHomePageElements();
+		if (true) {
+			reportStatus(true,"Successfully Logged in to Mobile Home Page","Home page"); 
+			reportStatus(true,"Successfully Logged in to Mobile Home Page","Home page");
+			reportStatus(true,"Successfully Logged in to Mobile Home Page","Home page");
+			reportStatus(true,"Successfully Logged in to Mobile Home Page","Home page");
+			
+				 // attachScreenshot(Status.INFO, "info");
+			}else {
+				reportStatus(false,"Create Asset Page ","fail to navigate to Create asset screen");
+			}
+			
+		
+		}catch(Exception e) {
+			reportStatus(false,"Test-01- Create asset","Test-01- Create asset Fail to initiate..");
+			e.printStackTrace();
+		}
+	}
+	
+
+}

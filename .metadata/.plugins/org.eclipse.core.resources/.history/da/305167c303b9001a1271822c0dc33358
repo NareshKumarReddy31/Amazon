@@ -1,0 +1,389 @@
+package a2b.mobile.Phase_3;
+
+
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.util.HashMap;
+import org.testng.ITestContext;
+import org.testng.annotations.DataProvider;
+import org.testng.annotations.Test;
+
+import com.aventstack.extentreports.Status;
+
+import a2b.mobile.android.pages.EnvironmentSetUpPage;
+import amazon.config.gblConstants;
+import amazon.mobile.android.engine.A2BWebActionEngine;
+import amazon.mobile.android.engine.A2BWebTestEngine;
+import a2b.core.database.DatabaseVerification;
+import a2b.core.fileutils.TestDataProviders;
+
+
+
+
+
+public class GlobalDataFiltersWebTests extends A2BWebTestEngine {
+	
+	public A2BWebActionEngine actEngine = null;
+	public String className = GlobalDataFiltersWebTests.class.getName();
+	public EnvironmentSetUpPage enviPage = null ; 
+	
+     /************************************************************************************************************
+     * @ Set UP Name: Environment Set for RFID Mobile App before Run
+     * @author Naresh Gorla
+     * @Test : Restore PreRequisite  
+     * **********************************************************************************************************
+     */
+	@DataProvider(name="EnvironmentSetUp")
+	public static Object[][] Phase_3_Reader() throws FileNotFoundException, IOException{
+		String inpFileName = "RFIDAPPTestData.xlsx";
+		String inpSheetName = "EnviTestData";
+		Object[][] data = TestDataProviders.loadExcelTable(inpFileName, inpSheetName);		
+		return data;		
+	}
+	
+	@Test(dataProvider="EnvironmentSetUp", dataProviderClass = GlobalDataFiltersWebTests.class)
+	public void Phase_3_DB_Restore (HashMap<String, String> inpDetails,ITestContext testContext) {
+		
+		 // Loading Test Data 
+		String setSingleUser = inpDetails.get("SQL-Set-SingleUser").trim();
+		String DropDB_Sql = inpDetails.get("DB-Drop").trim();
+		String reStoreDB = inpDetails.get("SQL-Restore-DB-2").trim();
+		String flgDBRestore = inpDetails.get("DB-Restore").trim();;
+		String sql = reStoreDB ;
+		String sql_1 = setSingleUser+"\n"+
+				       DropDB_Sql ;
+		try {
+			
+			// *******************  Drop DB **********************
+			if (flgDBRestore.toUpperCase().contains("YES")) {
+          	  System.out.println("Drop -RFID Tracker - Data Base Started....");
+          	  DatabaseVerification db = new DatabaseVerification("MySQL","jdbc:sqlserver://devdb:1433","master","uid","uid");
+				  reportStatus(true,"Successfully initiated DataBase Conection...","DB Connection");
+				  db.executeQuery(sql_1);
+				  reportStatus(true,"Successfully Deleted RFID Tracker Data base.. ","Fail To Drop Database ");	
+			}
+
+			//************* DB - Restore- Rfid Tracker ***********************************************			
+			if (flgDBRestore.toUpperCase().contains("YES")) {
+				Thread.sleep(10000);
+				System.out.println("ReStroe -RFID Tracker - Data Base Started....");
+				DatabaseVerification db = new DatabaseVerification("MySQL","jdbc:sqlserver://devdb:1433","master","uid","uid");
+				reportStatus(true,"Successfully initiated DataBase Conection...","DB Connection");
+				System.out.println("RFID Tracker -Restore is in progress ....");
+				db.executeQuery(sql);
+				reportStatus(true,"Successfully Restored RFID Tracker Data base.. DB-2","Restore Activity ");
+				
+			}
+			
+		} catch (Exception e) {
+			reportStatus(false,"Restore Activity","RFID - DB Restore Activity Fail -Phase_3 ");
+		}
+	}
+	
+
+
+	@DataProvider(name="GLBfilters")
+	public static Object[][] GlbFilters() throws FileNotFoundException, IOException{
+		String inpFileName = "RFIDAPPTestData.xlsx";
+		String inpSheetName = "GlobalDataFilters";
+		Object[][] data = TestDataProviders.loadExcelTable(inpFileName, inpSheetName);		
+		return data;		
+	}
+	@Test(dataProvider="GLBfilters", dataProviderClass = GlobalDataFiltersWebTests.class)
+	public void CreateLocationsAndCategory (HashMap<String, String> inpDetails,ITestContext testContext) {
+		boolean res = false;
+		
+	    // Loading Test Data 
+		String userName = inpDetails.get("UserName").trim();
+		String passWord = inpDetails.get("Password").trim();
+		String LCat = inpDetails.get("LocationCategories").trim();
+		String[] LCate = LCat.split(";");
+		String Loc1 = inpDetails.get("Location-1").trim();
+		String[] Loca1 = Loc1.split(";");
+		String Loc2 = inpDetails.get("Location-2").trim();
+		String[] Loca2 = Loc2.split(";");
+		String Loc3 = inpDetails.get("Location-3").trim();
+		String[] Loca3 = Loc3.split(";");
+		
+		String auto = inpDetails.get("AutoID").trim();
+		String[] autoID = auto.split(";");
+		try {
+			  for  (int i = 0 ; i < 100 ;i++) {
+				  boolean loadpage = loadApplication(a2bWebActionEngg);
+				  
+				  if (loadpage && i > 5) {
+					  break ;
+				  }
+				  Thread.sleep(1000);
+			  }
+			  reportStatus(true,"Successfully Refreshed Browser ","Browser Refresh ");
+			  enviPage = new EnvironmentSetUpPage(this.a2bWebActionEngg);
+			  if (enviPage.waitForPage()) {
+				  reportStatus(true,"Successfully Launched A2B Tracking Web Login Page.. ","Login Page ");
+				  // Verify _ Application version .
+				  enviPage.GetWebApplicationVersion();
+				  // Login TO A2B Web Application
+				  res= enviPage.A2BTrackingLoginWeb(userName, passWord);
+				  if (enviPage.waitForHomePage()) {
+					  
+					  // Create LocationCategory
+					  reportStatus(true,"Successfully Logged in to A2B Tracking Web .. ","Failed to login ");
+					  res = enviPage.CreateLocationCategory(LCate[0], "",true, true);
+					  reportStatus(res,"Successfully created  LocationCategory- "+LCate[0],"Failed to create LocationCategory "+LCate[0]);
+					  attachScreenshot(Status.INFO, "Page info");
+					  res = enviPage.CreateLocationCategory(LCate[1], LCate[0],true, true);
+					  reportStatus(res,"Successfully created  LocationCategory- "+LCate[1],"Failed to create LocationCategory "+LCate[0]);
+					  res = enviPage.CreateLocationCategory(LCate[2], LCate[1],true, true);
+					  reportStatus(res,"Successfully created  LocationCategory- "+LCate[2],"Failed to create LocationCategory "+LCate[0]);
+					  attachScreenshot(Status.INFO, "Page info");
+					  res = enviPage.CreateLocationCategory(LCate[3], LCate[2],true, false);
+					  reportStatus(res,"Successfully created  LocationCategory- "+LCate[3],"Failed to create LocationCategory "+LCate[0]);
+					  attachScreenshot(Status.INFO, "Page info");
+					  // Create Location
+					  res = enviPage.CreateLocation(Loca1[0],autoID[0], LCate[3], "");
+					  reportStatus(res,"Successfully created  Location- "+Loca1[0],"Failed to create Location "+Loca1[0]);
+					  attachScreenshot(Status.INFO, "Page info");
+					  res = enviPage.CreateLocation(Loca1[1],autoID[1], LCate[2], autoID[0]);
+					  reportStatus(res,"Successfully created  Location- "+Loca1[1],"Failed to create Location "+Loca1[1]);
+					  attachScreenshot(Status.INFO, "Page info");
+					  res = enviPage.CreateLocation(Loca1[2],autoID[2], LCate[1], autoID[1]);
+					  reportStatus(res,"Successfully created  Location- "+Loca1[2],"Failed to create Location "+Loca1[2]);
+					  attachScreenshot(Status.INFO, "Page info");
+					  res = enviPage.CreateLocation(Loca1[3],autoID[3], LCate[0], autoID[2]);
+					  reportStatus(res,"Successfully created  Location- "+Loca1[3],"Failed to create Location "+Loca1[3]);
+					  attachScreenshot(Status.INFO, "Page info");
+					  
+					  res = enviPage.CreateLocation(Loca2[0],autoID[4], LCate[2], autoID[0]);
+					  reportStatus(res,"Successfully created  Location- "+Loca2[0],"Failed to create Location "+Loca2[0]);
+					  attachScreenshot(Status.INFO, "Page info");
+					  res = enviPage.CreateLocation(Loca2[1],autoID[5], LCate[1], autoID[4]);
+					  reportStatus(res,"Successfully created  Location- "+Loca2[1],"Failed to create Location "+Loca2[2]);
+					  attachScreenshot(Status.INFO, "Page info");
+					  res = enviPage.CreateLocation(Loca2[2],autoID[6], LCate[0], autoID[5]);
+					  reportStatus(res,"Successfully created  Location- "+Loca2[2],"Failed to create Location "+Loca2[2]);
+					  attachScreenshot(Status.INFO, "Page info");
+					  res = enviPage.CreateLocation(Loca3[2],autoID[7], LCate[0], autoID[5]);
+					  reportStatus(res,"Successfully created  Location- "+Loca3[2],"Failed to create Location "+Loca3[2]);
+					  attachScreenshot(Status.INFO, "Page info");
+					  //Navigate to Home
+					  enviPage.loadURL("Home", "Home Page");
+				  }else {
+					  reportStatus(false,"Home Page ","Unable to Login to A2B Tracking Web Application - Home Page Unable to load ");
+				  }  
+			  }else {
+				  reportStatus(false,"Login Page ","Unable to Launch Login Page ");
+              }			
+		} catch (Exception e) {
+			reportStatus(false,"Phase_3_CreateLocationsAndCategorys","Phase_3_CreateLocationsAndCategory- Failed");
+		}
+	}
+		
+	@Test(dataProvider="GLBfilters", dataProviderClass = GlobalDataFiltersWebTests.class)
+	public void AssociateLocationsToAnAsset(HashMap<String, String> inpDetails,ITestContext testContext) {
+		boolean res = false;
+		
+	    // Loading Test Data 
+		String AssetIds = inpDetails.get("AssetID").trim();
+		String[] assetID = AssetIds.split(";");
+		String auto = inpDetails.get("AutoID").trim();
+		String[] autoID = auto.split(";");
+		try {
+			// Login TO A2B Web Application
+			  
+			 enviPage = new EnvironmentSetUpPage(this.a2bWebActionEngg);
+			 
+
+boolean loadpage = loadApplication(a2bWebActionEngg);
+ res= enviPage.A2BTrackingLoginWeb("nsadmin", "nsadmin");
+ 
+			 enviPage.loadURL("Home", "Home Page");
+				  if (enviPage.waitForHomePage()) {
+					  // Create LocationCategory
+					  reportStatus(true,"Successfully Logged in to A2B Tracking Web .. ","Failed to login ");
+					  res= enviPage.UpdateLocation(assetID[0], autoID[6]);
+					  reportStatus(res,"Successfully Updated location for .. "+assetID[0],"Failed to update location "+assetID[0]);
+					  attachScreenshot(Status.INFO, "Page info");
+					  res= enviPage.UpdateLocation(assetID[1], autoID[6]);
+					  reportStatus(res,"Successfully Updated location for .. "+assetID[1],"Failed to update location "+assetID[1]);
+					  attachScreenshot(Status.INFO, "Page info");		  
+					  res= enviPage.UpdateLocation(assetID[2], autoID[3]);
+					  reportStatus(res,"Successfully Updated location.. "+assetID[2],"Failed to update location "+assetID[2]);
+					  attachScreenshot(Status.INFO, "Page info");			
+					  /*res= enviPage.UpdateLocation(assetID[3], autoID[3]);
+					  reportStatus(res,"Successfully Updated location.. ","Failed to update location ");
+					  
+					  res= enviPage.UpdateLocation(assetID[4], autoID[4]);
+					  reportStatus(res,"Successfully Updated location.. ","Failed to update location ");*/
+				  }else {
+					  reportStatus(false,"Home Page ","Unable to Login to A2B Tracking Web Application - Home Page Unable to load ");
+				  }  
+			  		
+		} catch (Exception e) {
+			reportStatus(false,"AssociateLocationsToAnAsset","AssociateLocationsToAnAsset- Failed");
+		}
+	}
+	
+	@Test(dataProvider="GLBfilters", dataProviderClass = GlobalDataFiltersWebTests.class)
+	public void CreateAndVerifyGDF(HashMap<String, String> inpDetails,ITestContext testContext) {
+		boolean res = false;
+		
+	    // Loading Test Data 
+		String gdfName = inpDetails.get("GDF-Name").trim();
+		String Location = inpDetails.get("Location").trim();
+		String user = inpDetails.get("User").trim();
+		try {
+			// Login TO A2B Web Application
+			  
+			 enviPage = new EnvironmentSetUpPage(this.a2bWebActionEngg);
+			  enviPage.loadURL("Home", "Home Page");
+				  if (enviPage.waitForHomePage()) {
+					  reportStatus(true,"Successfully Logged in to A2B Tracking Web .. ","Failed to login ");
+					  res= enviPage. loadURL("Admin/GlobalDataFilter/Create", "Create Global Data Filter");  
+					  reportStatus(res,"Successfully Navigate to Create Global Data Filter page","Failed to navigate to Create Global Data Filter page");
+					  
+					  res = this.a2bWebActionEngg.type(enviPage.gdfname, gdfName);
+					  reportStatus(res,"Successfully Enter GDF-Name: "+gdfName,"Failed to Enter GDF Name: "+gdfName);
+					  res= this.a2bWebActionEngg.selectByName(enviPage.gdfField, "Location", "Filed");
+					  reportStatus(res,"Successfully Select GDF-Filed: location ","Failed to Select GDF-Filed: Location");
+					  res= this.a2bWebActionEngg.selectByName(enviPage.gdfoperator, "Equals", "operator");
+					  reportStatus(res,"Successfully Select GDF-operator: Equals","Failed to GDF-operator : Equals ");
+					  res= this.a2bWebActionEngg.selectByName(enviPage.gdfval, Location, "Value");
+					  reportStatus(res,"Successfully Select GDF-value: "+Location,"Failed to Select GDF value: "+Location);
+					  attachScreenshot(Status.INFO, "Page info");
+					  res = this.a2bWebActionEngg.click(enviPage.gdfCreate, "GDF-Create");
+					  res = enviPage.verifyPageTitle("Global Data Filters ");
+					  reportStatus(res,"Successfully created Global data Filter: "+gdfName,"Failed to create Global data filter: "+gdfName);
+					  attachScreenshot(Status.INFO, "Page info");
+					  //Edit GDF
+					  res= enviPage.selectGDFfromList(gdfName);
+					  reportStatus(res,"Successfully Selcted GDF: "+gdfName,"Failed to select GDF: "+gdfName);
+					  attachScreenshot(Status.INFO, "Page info");
+					  
+					  res = this.a2bWebActionEngg.click(enviPage.gdfEdtAddSubLoc, "GDF-Add Sub Locations");
+					  reportStatus(res,"Successfully Selected  Add Sub Locations Check Box","Failed to select Add Sub Locations Check Box ");
+					  
+					  //Preview
+					  res = this.a2bWebActionEngg.click(enviPage.btnPreviewFilter, "btnPreviewFilter");
+					  reportStatus(res,"Successfully clicked on preview botton","Failed to click on preview button ");
+					  //Verify Data
+					  
+					  //Click on close Preview
+					  this.a2bWebActionEngg.switchToIFrame();
+					  res = this.a2bWebActionEngg.click(enviPage.gdfPreviewClose, "gdfPreviewClose");
+					  reportStatus(res,"Successfully closed preview Pop UP","Failed to close preview Pop Up");
+					  this.a2bWebActionEngg.switchToDefaultContent();
+					  Thread.sleep(2000);
+					  
+					  //Assign User
+					  res= enviPage.clickONGDFTabs("Assign Users");
+					  reportStatus(res,"Successfully clicked on Assign Users tab","Failed to click on Assign Users tab ");
+					  res= enviPage.AssignUser(user);
+					  Thread.sleep(3000);
+					  reportStatus(res,"Successfully Assign user: "+user,"Failed to assign user:  "+user);
+					  attachScreenshot(Status.INFO, "Page info");
+					  //Save
+					  res= enviPage.clickONGDFTabs("Filter Information");
+					  reportStatus(res,"Successfully clicked on  Filter Information tab: ","Failed to click on Filter Information tab:  ");
+
+					  res = this.a2bWebActionEngg.click(enviPage.gdfEdtAddSubLoc, "GDF-Add Sub Locations");
+					  reportStatus(res,"Successfully Selected  Add Sub Locations Check Box","Failed to select Add Sub Locations Check Box ");
+					  
+					  res= this.a2bWebActionEngg.click(enviPage.gdfEdtSave, "gdfEdtSave");
+					  reportStatus(res,"Successfully saved GDF Edit Info","Failed to save GDF Edit Info ");
+					  attachScreenshot(Status.INFO, "Page info");
+					  Thread.sleep(2000);
+					  enviPage.loadURL("Home", "Home Page");
+					  
+					  // Verify Assets with out GDF
+					  
+					  res= enviPage.NavigateToAsset();
+					  reportStatus(res,"Successfully Loaded Asset List page ","Fail to Load Asset List Page ");
+					  attachScreenshot(Status.INFO, "Page info");		
+					  
+					  
+					  res = this.a2bWebActionEngg.type(enviPage.EDTsearch, "test");
+					  reportStatus(res,"Successfully entered text on Asset search box: ","Failed to enter text on asset search box: ");
+					  res = this.a2bWebActionEngg.click(enviPage.btnSearch, "Asset search");
+					  reportStatus(res,"Successfully clicked on search button ","Failed to click search button");
+					 
+					  
+					  res = this.a2bWebActionEngg.waitForElementPresent(enviPage.assetInfo,  gblConstants.wdWaitTimeout);
+					  //res = this.a2bWebActionEngg.getVisibleText(enviPage.assetInfo).split("of")[1].contains(Integer.toString(4));
+					  reportStatus(res,"Successfully verifiled total assets-4 ","Failed to verify assets count-4");
+					  attachScreenshot(Status.INFO, "Page info");
+					  
+
+					  res= enviPage.NavigateToAsset();
+					  reportStatus(res,"Successfully Loaded Asset List page ","Fail to Load Asset List Page ");
+					  attachScreenshot(Status.INFO, "Page info");		
+					  
+					  res = this.a2bWebActionEngg.type(enviPage.EDTsearch, "003");
+					  reportStatus(res,"Successfully entered text on Asset search box: 003","Failed to enter text on asset search box: 003");
+					  res = this.a2bWebActionEngg.click(enviPage.btnSearch, "Asset search");
+					  reportStatus(res,"Successfully clicked on search button ","Failed to click search button");
+					 
+					  
+					  res = this.a2bWebActionEngg.waitForElementPresent(enviPage.assetInfo,  gblConstants.wdWaitTimeout);
+					  //res = this.a2bWebActionEngg.getVisibleText(enviPage.assetInfo).split("of")[1].contains(Integer.toString(1,036));
+					  reportStatus(res,"Successfully verifiled total assets -1,036","Failed to verify assets count");
+					  attachScreenshot(Status.INFO, "Page info");
+					  
+					  //Log Out
+					  enviPage.LogOutWebApp();
+					  reportStatus(res,"Successfully clicked on Log Out Button- Redirected to Login page","Fail to Log Out- A2B Tracking Web Application");
+					  attachScreenshot(Status.INFO, "Page info");
+				 
+				  }else {
+					  reportStatus(false,"Home Page ","Unable to Login to A2B Tracking Web Application - Home Page Unable to load ");
+				  }  
+			  		
+		} catch (Exception e) {
+			reportStatus(false,"CreateAndVerifyGDF","CreateAndVerifyGDF- Failed");
+		}
+	}
+
+	@Test(dataProvider="GLBfilters", dataProviderClass = GlobalDataFiltersWebTests.class)
+	public void verifyGDFUserAssetss(HashMap<String, String> inpDetails,ITestContext testContext) {
+		boolean res = false;
+		
+	    // Loading Test Data 
+		String AssetIds = inpDetails.get("AssetID").trim();
+		String[] assetID = AssetIds.split(";");
+		String byodUser = inpDetails.get("BYODUser").trim();
+		
+		try {
+			// Login TO A2B Web Application
+			  
+			 enviPage = new EnvironmentSetUpPage(this.a2bWebActionEngg);
+			 res= enviPage.A2BTrackingLoginWeb(byodUser, byodUser);
+				  if (enviPage.waitForHomePage()) {
+					  // Create LocationCategory
+					  reportStatus(true,"Successfully Logged in to A2B Tracking Web .. ","Failed to login ");
+					  
+					  res = this.a2bWebActionEngg.click(enviPage.searchIcon, "BYOD Search Icon");
+					  reportStatus(res,"Successfully clicked on Search Icon ","Failed to click on search Icon  ");
+					  attachScreenshot(Status.INFO, "Page info");
+					  res = this.a2bWebActionEngg.click(enviPage.searchBtn, "Search Button");
+					  reportStatus(res,"Successfully clicked on Search Button ","Failed to click on search button  ");
+					  attachScreenshot(Status.INFO, "Page info");
+					  // Verify assets
+					  res = enviPage.VerfyAssets(assetID);
+					  reportStatus(res,"Successfully Verified GDF-Filter Assets Displayed Properly","Failed to Display GDF- Assets ");
+					  attachScreenshot(Status.INFO, "Page info");
+					  //Log Out
+					  enviPage.LogOutWebApp();
+					  reportStatus(res,"Successfully clicked on Log Out Button- Redirected to Login page","Fail to Log Out- A2B Tracking Web Application");
+					  attachScreenshot(Status.INFO, "Page info");
+				  }else {
+					  reportStatus(false,"Home Page ","Unable to Login to A2B Tracking Web Application - Home Page Unable to load ");
+				  }  
+			  		
+		} catch (Exception e) {
+			reportStatus(false,"verifyGDFUserAssetss","verifyGDFUserAssetss- Failed");
+		}
+	}
+	
+	
+	
+	
+}

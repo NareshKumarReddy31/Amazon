@@ -1,0 +1,682 @@
+package a2b.mobile.android.pages;
+
+import org.openqa.selenium.Keys;
+
+import com.aventstack.extentreports.Status;
+
+import amazon.config.gblConstants;
+import amazon.mobile.android.engine.A2BWebActionEngine;
+import amazon.mobile.android.engine.A2BWebTestEngine;
+import a2b.core.logs.LogManager;
+
+public class EnvironmentSetUpPage extends A2BWebTestEngine{
+	
+	private A2BWebActionEngine a2bwebengg = null;
+ 
+    //********************* Start - Locators *************************************
+    public final String userName = "id=username";
+    public final String passWord = "id=password";
+    public final String signIn = "xpath=//input[@value='Log On']" ;
+    public final String lnk_logOut = "id=lnkLogOff";
+    public final String txtVersion = "xpath=//p[contains(text(),'Version')]";
+    public final String hm_Home = "id=lnkHome";
+    public final String hm_Asset = "id=lnAssets";
+    public final String hm_Contracts = "id=lnkContracts";
+    public final String hm_Tracking = "id=lnkTracking";
+    public final String hm_Reports = "id=lnkReports";
+    public final String hm_Admin = "id=Admin";
+    public final String pgTitle = "xpath=//span[@class='bracket-content']";
+    public final String tblTXT = "xpath=//a[text()='"+ gblConstants.replaceText+"']";
+    public final String loadIndicator = "xpath=//div[@class= 'loading ui-state-default ui-state-active'  and  @style='display: block;']]";
+    public final String lnkCreateInventory = "id=lnkCreateInventory";
+    public final String inventoryName = "id=txtName";
+    public final String Location_btnEnableScan = "id=Location_btnEnableScan";
+    public final String LocationScanbox = "id=Location_scan";
+    public final String btnCreate = "id=btnCreate";
+    public final String lnkInventoryList = "id=lnkInventoryList";
+    public final String Reconcile = "id=lnkReconcile";
+    public final String lblMissingAsset = "xpath=//span[contains(text(), 'Missing Assets')]";
+    public final String CreateAsset = "id=lnkCreate";
+    public final String btnCreateAsset = "xpath=//input[@value ='Create']";
+    public final String returnExpected = "id=ReturnExpectedChecked";
+    public final String save = "xpath=//input[@value ='Save']";
+    
+    // GlB filters
+    public final String LCatName = "id=Caption";
+    public final String allowTrackingAssignment = "id=AllowTrackingAssignment";
+    public final String requiresParent = "id=RequiresParent";
+    public final String LCatGrid = "xpath=//ul[@class='available connected-list']//*[text()='"+ gblConstants.replaceText+"']//a";
+   // public final String LCatGrid = "xpath=//a[text()='"+ gblConstants.replaceText+"']";
+    public final String LCatCreate = "xpath=//input[@value ='Create']";
+    
+    // Location 
+    
+    public final String LName = "id=Name";
+    public final String Lcat = "id=Category";
+    public final String LBtnScan = "id=ParentLocation_btnEnableScan";
+    public final String LEdtScan = "id=ParentLocation_scan";
+    
+    public final String AssetLBtnScan = "id=Location_btnEnableScan";
+    public final String AssetLEdtScan = "id=Location_scan";
+    
+    public final String LAutoId = "id=AutoIdentifierValue";
+    
+    public final String btnEdtTracking = "id=btnEditTracking";
+    
+    public final String btnEdtSave = "id=btnOkAndClose";
+    
+    /// GDF
+    public final String gdfname = "id=Name";
+    public final String gdfField = "id=Field_0";
+    public final String gdfoperator = "id=Operator_0";
+    public final String gdfval = "id=Value_0";
+    public final String gdfCreate = "id=btnCreate";
+    public final String gdfEdtAddSubLoc = "id=AddSubLocations";
+    public final String btnPreviewFilter = "id=btnPreviewFilter";
+    public final String gdfPreviewClose = "id=btnOkAndClose";
+    public final String gdfEdtSave = "id=btnSave";
+   // public final String LCatGrid = "xpath=//a[text()='"+ gblConstants.replaceText+"']";
+    public final String gdfList = "xpath=//td[@title='"+ gblConstants.replaceText+"']//a";
+  
+    
+    public final String userGrid = "xpath=//td[ @aria-describedby='assignUsersGrid_UserName' and @title='"+ gblConstants.replaceText+"']/../td[@aria-describedby='assignUsersGrid_cb']//input";
+    public final String lnkAssign = "id=lnkAssign";
+    public final String gdfTabs = "xpath=//a[text()='"+ gblConstants.replaceText+"']";
+  
+    //BYOD
+    public final String searchIcon = "id=btnViewAssets";
+    public final String searchBtn = "id=submit";
+    public final String assetGrid = "xpath=//a[text()='"+ gblConstants.replaceText+"']";
+   
+    
+    // Asset List
+    public final String EDTsearch = "id=criteria";
+    public final String btnSearch = "xpath=//input[@value='search']";
+    public final String assetInfo = "xpath=//div[@class='ui-paging-info']";
+  //**************************End - Locators**************************************
+    
+    public EnvironmentSetUpPage(A2BWebActionEngine actEngines){    	
+    	a2bwebengg = actEngines;
+        waitForPage();
+    }
+
+    /**
+     * @Purpose To wait until A2B Tracking Web Application login page present
+     * @Constraints
+     * @Input No Parameters
+     * @Output boolean : If A2B Tracking Web Application login page is displayed return TRUE, else FALSE
+     * @Author-Naresh 
+     * @Reviewed-
+     */
+    public boolean waitForPage(){
+        boolean blnRes = this.a2bwebengg.waitForElementPresent(userName, gblConstants.wdWaitTimeout);
+        return blnRes;
+    }
+
+    /**
+     * @Purpose To wait until A2B Tracking Web Application Home page present
+     * @Constraints
+     * @Input No Parameters
+     * @Output boolean : If A2B Tracking Web Application Home page is displayed return TRUE, else FALSE
+     * @Author-Naresh 
+     * @Reviewed-
+     */
+    public boolean waitForHomePage(){
+        boolean blnRes = this.a2bwebengg.waitForElementPresent(lnk_logOut, gblConstants.wdWaitTimeout);
+        return blnRes;
+    }
+    
+    /**
+     * @Purpose To Navigate to Home Page
+     * @Constraints
+     * @Input No Parameters
+     * @Output boolean : If Navigated is displayed return TRUE, else FALSE
+     * @Author- Naresh Gorla
+     * @Reviewed-
+     */
+	public boolean NavigateToHome() {
+		boolean res= false ;
+	        try {
+	        	res= this.a2bwebengg.click(hm_Home, "Home");
+	        	res= verifyPageTitle("Home Page");
+			} catch (Exception e) {
+				LogManager.logError(LoginPage.class.getName(), "NavigateToHome Method has exception.."+e);
+		
+			}
+	return res ;
+	}
+	
+	/**
+     * @Purpose To Navigate to Asset Page
+     * @Constraints
+     * @Input No Parameters
+     * @Output boolean : If Navigated is displayed return TRUE, else FALSE
+     * @Author- Naresh Gorla
+     * @Reviewed-
+     */
+	public boolean NavigateToAsset() {
+		boolean res= false ;
+	        try {
+	        	res= this.a2bwebengg.click(hm_Asset, "Assets");
+	        	res= verifyPageTitle("Asset List");
+	        	WaitForLoadIconDisAppear();
+	        	
+			} catch (Exception e) {
+				LogManager.logError(LoginPage.class.getName(), "NavigateToAsset Method has exception.."+e);
+		
+			}
+	return res ;
+	}
+	
+	
+	/**
+     * @Purpose To Wait For Load Icon DisAppear
+     * @Constraints
+     * @Input No Parameters
+     * @Output boolean : If DisAppear is displayed return TRUE, else FALSE
+     * @Author- Naresh Gorla
+     * @Reviewed-
+     */
+	public boolean WaitForLoadIconDisAppear() {
+		boolean res= false ;
+	        try {
+	        	res= this.a2bwebengg.waitForElementNotPresent(loadIndicator, gblConstants.wdWaitTimeout / 4);
+	        	Thread.sleep(10000);
+	        	
+			} catch (Exception e) {
+				LogManager.logError(LoginPage.class.getName(), "WaitForLoadIconDisAppear has exception.."+e);
+		
+			}
+	return res ;
+	}
+	
+	
+	
+	/**
+     * @Purpose To Navigate to Contracts Page
+     * @Constraints
+     * @Input 
+     * @Output boolean : If Navigated is displayed return TRUE, else FALSE
+     * @Author- Naresh Gorla
+     * @Reviewed-
+     */
+	public boolean NavigateToContracts() {
+		boolean res= false ;
+	        try {
+	        	res= this.a2bwebengg.click(hm_Contracts, "Contracts");
+	        	res= verifyPageTitle("Custody Contract List");
+			} catch (Exception e) {
+				LogManager.logError(LoginPage.class.getName(), "NavigateToContracts Method has exception.."+e);
+		
+			}
+	return res ;
+	}
+	
+	/**
+     * @Purpose To Navigate to Tracking Page
+     * @Constraints
+     * @Input 
+     * @Output boolean : If Navigated is displayed return TRUE, else FALSE
+     * @Author- Naresh Gorla
+     * @Reviewed-
+     */
+	public boolean NavigateToTracking() {
+		boolean res= false ;
+	        try {
+	        	res= this.a2bwebengg.click(hm_Tracking, "Tracking");
+	        	res= verifyPageTitle("Inventory List");
+			} catch (Exception e) {
+				LogManager.logError(LoginPage.class.getName(), "NavigateToTracking Method has exception.."+e);
+		
+			}
+	return res ;
+	}
+	/**
+     * @Purpose To click  any link and navigated title expected parameter
+     * @Constraints
+     * @Input 
+     * @Output boolean : If   expected title is displayed return TRUE, else FALSE
+     * @Author- Naresh Gorla
+     * @Reviewed-
+     */
+	public boolean clickOnActionLink(String Locator , String LinkText, String ExpTitle) {
+		boolean res= false ;
+	        try {
+	        	res= this.a2bwebengg.click(Locator, LinkText);
+	        	res= verifyPageTitle(ExpTitle);
+			} catch (Exception e) {
+				LogManager.logError(LoginPage.class.getName(), "NavigateToTracking Method has exception.."+e);
+		
+			}
+	return res ;
+	}
+	
+	/**
+     * @Purpose To Navigate to Reports Page
+     * @Constraints
+     * @Input No Parameters
+     * @Output boolean : If Navigated is displayed return TRUE, else FALSE
+     * @Author- Naresh Gorla
+     * @Reviewed-
+     */
+	public boolean NavigateToReports() {
+		boolean res= false ;
+	        try {
+	        	res= this.a2bwebengg.click(hm_Reports, "Reports");
+	        	res= verifyPageTitle("Reporting");
+			} catch (Exception e) {
+				LogManager.logError(LoginPage.class.getName(), "NavigateToReports Method has exception.."+e);
+		
+			}
+	return res ;
+	}
+	/**
+     * @Purpose To Navigate to Admin Page
+     * @Constraints
+     * @Input No Parameters
+     * @Output boolean : If Navigated is displayed return TRUE, else FALSE
+     * @Author- Naresh Gorla
+     * @Reviewed-
+     */
+	public boolean NavigateToAdmin() {
+		boolean res= false ;
+	        try {
+	        	res= this.a2bwebengg.click(hm_Admin, "Admin Link");
+	        	res= verifyPageTitle("Administrative Home Page");
+			} catch (Exception e) {
+				LogManager.logError(LoginPage.class.getName(), "NavigateToAdmin Method has exception.."+e);
+		
+			}
+	return res ;
+	}
+	
+	
+	/**
+     * @Purpose To VerifyMissingAssetCount
+     * @Constraints
+     * @Input 
+     * @Output boolean : If Verified return TRUE, else FALSE
+     * @Author- Naresh Gorla
+     * @Reviewed-
+     */
+	public boolean VerifyMissingAssetCount(String  Count) {
+		boolean res= false ;
+	        try {
+	        	String val = this.a2bwebengg.getVisibleText(lblMissingAsset);
+	        	
+	        	if (val.contains(Count)) {
+	        		res= true;
+	        	}
+	        	
+			} catch (Exception e) {
+				LogManager.logError(LoginPage.class.getName(), "VerifyMissingAssetCount Method has exception.."+e);
+		
+			}
+	return res ;
+	}
+	
+	/**
+     * @Purpose To click On Asset From Asset List Page
+     * @Constraints
+     * @Input 
+     * @Output boolean : If Clicked return TRUE, else FALSE
+     * @Author- Naresh Gorla
+     * @Reviewed-
+     */
+	public boolean clickOnAssetFromAssetListPage(String AssetID) {
+		boolean res= false ;
+	        try { 	
+	        	String ele= tblTXT .replace(gblConstants.replaceText, AssetID);
+	        	res= this.a2bwebengg.click(ele, AssetID);
+	        	reportStatus(res,"Successfully Clicked On Asset link "+AssetID,"Fail to Click On Asset ID "+AssetID);
+	        	res= verifyPageTitle("Asset Detail");
+			} catch (Exception e) {
+				LogManager.logError(LoginPage.class.getName(), "clickOnAssetToNavigateDetailPage Method has exception.."+e);
+			}
+	return res ;
+	}
+	
+	public boolean selectGDFfromList(String gdfName) {
+		boolean res= false ;
+	        try { 	
+	        	String ele= gdfList.replace(gblConstants.replaceText, gdfName);
+	        	res= this.a2bwebengg.click(ele, gdfName);
+	        	reportStatus(res,"Successfully Clicked On Global Data Filter "+gdfName,"Fail to Click On Global Data Filter "+gdfName);
+	        	res= verifyPageTitle("Edit Global Data Filter");
+			} catch (Exception e) {
+				LogManager.logError(LoginPage.class.getName(), "selectGDFfromList Method has exception.."+e);
+			}
+	return res ;
+	}
+	
+	
+	public boolean AssignUser(String userName) {
+		boolean res= false ;
+	        try { 	
+	        	String ele= userGrid .replace(gblConstants.replaceText, userName);
+	        	res= this.a2bwebengg.click(ele, userName);
+	        	reportStatus(res,"Successfully selected user "+userName,"Fail to select user "+userName);
+	        	// Click on Assign
+	        	
+	        	res= this.a2bwebengg.click(lnkAssign, "Assign");
+	        	Thread.sleep(3000);
+	        	this.a2bwebengg.driver.switchTo().alert().accept();
+			} catch (Exception e) {
+				LogManager.logError(LoginPage.class.getName(), "AssignUser Method has exception.."+e);
+			}
+	return res ;
+	}
+	
+	public boolean clickONGDFTabs(String tabName) {
+		boolean res= false ;
+	        try { 	
+	        	String ele= gdfTabs .replace(gblConstants.replaceText, tabName);
+	        	res= this.a2bwebengg.click(ele, tabName);
+	        	reportStatus(res,"Successfully clicked Tab: "+tabName,"Fail to click Tab: "+tabName);
+	       
+	        
+			} catch (Exception e) {
+				LogManager.logError(LoginPage.class.getName(), "clickONGDFTabs Method has exception.."+e);
+			}
+	return res ;
+	}
+	
+	
+	public boolean VerfyAssets(String[] assets) {
+		boolean res= false ;
+	        try { 	
+	        	
+	        	for(int i=0; i < assets.length ; i++) {
+	        		
+	        		String ele= gdfTabs .replace(gblConstants.replaceText, assets[i]);
+	        		this.a2bwebengg.waitForElementPresent(ele, gblConstants.wdWaitTimeout);
+	        		res= this.a2bwebengg.isElementPresent(ele, true);
+		        	reportStatus(res,"Successfully Displayed: "+assets[i],"Fail to Display: "+assets[i]);	
+	        	}
+	        	
+	        	
+			} catch (Exception e) {
+				LogManager.logError(LoginPage.class.getName(), "VerfyAssets Method has exception.."+e);
+			}
+	return res ;
+	}
+	/**
+     * @Purpose To click On Inventory From Inventory List Page
+     * @Constraints
+     * @Input 
+     * @Output boolean : If Clicked return TRUE, else FALSE
+     * @Author- Naresh Gorla
+     * @Reviewed-
+     */
+	public boolean clickOnInventoryFromInventoryListPage(String InventoryID) {
+		boolean res= false ;
+	        try { 	
+	        	String ele= tblTXT .replace(gblConstants.replaceText, InventoryID);
+	        	res= this.a2bwebengg.click(ele, InventoryID);
+	        	reportStatus(res,"Successfully Clicked On Inventory link "+InventoryID,"Fail to Click On Inventory ID "+InventoryID);
+	        	res= verifyPageTitle("Edit Inventory");
+			} catch (Exception e) {
+				LogManager.logError(LoginPage.class.getName(), "clickOnAssetToNavigateDetailPage Method has exception.."+e);
+			}
+	return res ;
+	}
+	
+	
+	/**
+     * @Purpose To verify Page Title- ON [Web-Title]
+     * @Constraints
+     * @Input 
+     * @Output boolean : If Verified return TRUE, else FALSE
+     * @Author- Naresh Gorla
+     * @Reviewed-
+     */
+	public boolean verifyPageTitle(String Title) {
+		boolean res= false ;
+	        try {
+	        	
+	        	for (int i = 0; i < 10 ; i++) {
+	        		String pageTitle = this.a2bwebengg.getVisibleText(pgTitle) ;
+		        	if (pageTitle.trim().toLowerCase().contains(Title.trim().toLowerCase())) {
+		        		reportStatus(true,"Successfully Loaded Page- "+Title,"Fail To Load Page- "+Title);
+		        		res = true;
+		        		break;
+		        	}
+		        	Thread.sleep(gblConstants.wdWaitTimeout*100);
+	        	}
+	        	
+	        	
+			} catch (Exception e) {
+				LogManager.logError(LoginPage.class.getName(), "verifyPageTitle Method has exception.."+e);
+		
+			}
+	return res ;
+	}
+	
+	/**
+     * @Purpose To Get Web Application Version
+     * @Constraints
+     * @Input No Parameters
+     * @Output boolean : If Verified return TRUE, else FALSE
+     * @Author- Naresh Gorla
+     * @Reviewed-
+     */
+	public boolean GetWebApplicationVersion() {
+		boolean res= false ;
+	        try {
+	        	String Version = this.a2bwebengg.getVisibleText(txtVersion) ;
+	        	res= true;
+	        	reportStatus(res,"A2B Tracking Web Application  - "+Version,"Fail To Verify A2B Tacking Web Application Version Number");
+	        	
+			} catch (Exception e) {
+				LogManager.logError(LoginPage.class.getName(), "GetWebApplicationVersion Method has exception.."+e);
+		
+			}
+	return res ;
+	}
+	/**
+     * @Purpose To LogOutWebApp
+     * @Constraints
+     * @Input No Parameters
+     * @Output boolean : If Logged out return TRUE, else FALSE
+     * @Author- Naresh Gorla
+     * @Reviewed-
+     */
+	public boolean LogOutWebApp() {
+		boolean res= false ;
+	        try {
+	        	res = this.a2bwebengg.click(lnk_logOut, "Log Off");
+	        	res= waitForPage();
+			} catch (Exception e) {
+				LogManager.logError(LoginPage.class.getName(), "LogOutWebApp Method has exception.."+e);
+		
+			}
+	return res ;
+	}
+	/**
+	 * @Purpose To Log in TO A2B Tracking Web Application
+	 * @Constraints
+	 * @Input String: user name, password valid credentials
+	 * @Output returns true if login successfully
+	 */
+
+	public boolean A2BTrackingLoginWeb(String UserName, String Password) {
+		boolean res= false ;
+	        try {
+	        	res= this.a2bwebengg.type(userName, UserName);  
+	        	reportStatus(res,"Successfully Enter User names as- "+UserName,"Unable to Enter User Name");
+	        	res= this.a2bwebengg.type(passWord, Password); 
+	        	reportStatus(res,"Successfully to Enter PassWord as-  "+Password,"Unable to enter Password");
+	        	res= this.a2bwebengg.click(signIn, Password); 
+	        	reportStatus(res,"Successfully clicked on Log in Button","Fail to click on Login Button");
+	        	
+			} catch (Exception e) {
+				LogManager.logError(LoginPage.class.getName(), "A2BTrackingLoginWeb Method has exception.."+e);
+		
+			}
+	return res ;
+	}
+	
+	public boolean  loadURL(String appendURL, String strExpTitle) {
+		boolean res= false ;
+	        try {
+	        	
+	      
+ 	       	   //String url = this.a2bwebengg.driver.getCurrentUrl()+appendURL ;
+	        	
+	        	//String appUrl = gblConstants.suiteConfig.getTestAppUrl(this.appUnderTest, this.testEnvName);
+	        	String appUrl= "http://devweb/rfidtracker/";
+	        	String url = appUrl+appendURL ;
+	       	  res= this.a2bwebengg.loadPage(url, strExpTitle);
+	        	
+			} catch (Exception e) {
+				LogManager.logError(LoginPage.class.getName(), "loadURL has exception.."+e);
+		
+			}
+	return res ;
+	}
+	
+	public boolean  CreateLocationCategory(String Name, String SupportedChild ,boolean AllowTrackingAssignment,boolean AequiresParent ) {
+		boolean res= false ;
+		
+	        try {
+	        	  res=  loadURL("Admin/LocationCategory/Create", "Create Location Category");  
+				  reportStatus(res,"Successfully Navigate to Create Location Category page","Failed to navigate to Create Location Category page");
+				  
+				  this.a2bwebengg.type(LCatName, Name);
+				  res= this.a2bwebengg.setCheckbox(allowTrackingAssignment, AllowTrackingAssignment, "Allow Tracking Assignment");
+				  reportStatus(res,"Successfully checked Allow Tracking Assignment","Failed to check Allow Tracking Assignment");
+				 if (AequiresParent){
+					 res= this.a2bwebengg.setCheckbox(requiresParent, AequiresParent, "Requires Parent");
+					  reportStatus(res,"Successfully checked Requires Parent","Failed to check Requires Parent");
+				 }
+				  if (SupportedChild.length()>1) {
+					  res=  LCatSelectChilds(SupportedChild);
+					  reportStatus(res,"Successfully Selected Supported Child "+SupportedChild,"Failed to select Supported Child "+SupportedChild);
+				  }
+				  res= this.a2bwebengg.click(LCatCreate, "Create");
+				  reportStatus(res,"Successfully clicked on create","Failed to click create");
+				  //res= verifyPageTitle("Location Category List");
+			     Thread.sleep(3000);
+	        	
+			} catch (Exception e) {
+				LogManager.logError(LoginPage.class.getName(), "CreateLocationCategory has exception.."+e);
+		
+			}
+	return res ;
+	}
+	
+	
+	
+	
+	public boolean  CreateLocation(String Name,String LautoId, String LCatoptionName ,String LScanID ) {
+		boolean res= false ;
+		
+	        try {
+	        	  res=  loadURL("Admin/Location/Create", "Create Location ");  
+				  reportStatus(res,"Successfully Navigate to Create Location  page","Failed to navigate to Create Location  page");
+				  
+				  res = this.a2bwebengg.type(LName, Name);
+				  reportStatus(res,"Successfully Entered location name:- "+Name,"Failed to Enter location name: "+Name);
+				  
+				  res = this.a2bwebengg.type(LAutoId, LautoId);
+				  reportStatus(res,"Successfully Entered location Auto id:- "+LautoId,"Failed to Enter location Auto ID: "+LautoId);
+				  
+				  res= this.a2bwebengg.setCheckbox(allowTrackingAssignment, true, "Allow Tracking Assignment");
+				  reportStatus(res,"Successfully checked Allow Tracking Assignment","Failed to check Allow Tracking Assignment");
+				  this.a2bwebengg.selectByName(Lcat, LCatoptionName, "Location Cat");
+				  
+				  if (LScanID.length()>1) {
+					  res=  this.a2bwebengg.click(LBtnScan, "LBtnScan");
+					  reportStatus(res,"Successfully clicked on location scan","Failed to click on location scan button ");
+					  res = this.a2bwebengg.type(LEdtScan, LScanID);
+					  reportStatus(res,"Successfully Entered Location Scan id:- "+LScanID,"Failed to Enter Location Scan id: "+LScanID);
+					  Thread.sleep(4000);
+				  }
+				  res= this.a2bwebengg.click(LCatCreate, "Edit Location");
+				  reportStatus(res,"Successfully clicked on create","Failed to click create");
+				  //res= verifyPageTitle("Location Category List");
+			 
+			
+	        	
+			} catch (Exception e) {
+				LogManager.logError(LoginPage.class.getName(), "CreateLocation has exception.."+e);
+		
+			}
+	return res ;
+	}
+	
+	public boolean  UpdateLocation(String AssetID,String LScanID ) {
+		boolean res= false ;
+		
+	        try {
+	        	 //Verify Asset Details
+				  res= NavigateToAsset();
+				  reportStatus(res,"Successfully Navigate to asset list page ","Fail to navigate to Asset List page ");
+				  res= clickOnAssetFromAssetListPage(AssetID);
+				  reportStatus(res,"Successfully Displayed Asset details page for - "+AssetID,"Fail to display asset detail page for- "+AssetID);
+				  res= this.a2bwebengg.click(btnEdtTracking, "btnEdtTracking");
+				  reportStatus(res,"Successfully clicked on btnEdtTracking ","Fail to click on btnEdtTracking");
+				  //this.a2bwebengg.driver.switchTo().
+				  this.a2bwebengg.switchToIFrame();
+				  res=  this.a2bwebengg.click(AssetLBtnScan, "LBtnScan");
+				  reportStatus(res,"Successfully clicked on location scan","Failed to click on location scan button ");
+				  res = this.a2bwebengg.type(AssetLEdtScan, LScanID);
+				  reportStatus(res,"Successfully Entered Location Scan id:- "+LScanID,"Failed to Enter Location Scan id: "+LScanID);
+				  Thread.sleep(4000);
+				  res= this.a2bwebengg.click(btnEdtSave, "Asset Detail");
+				  reportStatus(res,"Successfully clicked on create","Failed to click create");
+				  this.a2bwebengg.driver.switchTo().defaultContent();
+				  Thread.sleep(4000);
+				  res= verifyPageTitle("Asset Detail");
+			} catch (Exception e) {
+				LogManager.logError(LoginPage.class.getName(), "UpdateLocation has exception.."+e);
+		
+			}
+	return res ;
+	}
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	public boolean LCatSelectChilds(String Text) {
+		boolean res= false ;
+	        try { 	
+	        	String ele= LCatGrid .replace(gblConstants.replaceText, Text);
+	        	res= this.a2bwebengg.click(ele, Text);
+	        	reportStatus(res,"Successfully select Supported Child Location Categories "+Text,"Fail to select Supported Child Location Categories "+Text);
+	        	
+			} catch (Exception e) {
+				LogManager.logError(LoginPage.class.getName(), "LCatSelectChilds Method has exception.."+e);
+			}
+	return res ;
+	}
+	
+
+	
+
+	
+	
+	
+	
+	
+	
+}

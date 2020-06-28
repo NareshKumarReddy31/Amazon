@@ -1,0 +1,40 @@
+06/29/2020 01:10:50	INFO   amazon.core.listeners.TestNGListener  - About to begin executing Suite :- Amazon-Mobile
+06/29/2020 01:10:50	INFO   amazon.core.listeners.TestNGListener  - About to begin executing method :- AmazonMobileTestEngine.beforeSuite
+06/29/2020 01:10:50	INFO   amazon.core.reports.ExtentManager  - Configured extent reports screenshots path to F:\Office\Amazon\AmazonMobileAutomation\Reports\screenshots
+06/29/2020 01:10:50	INFO   amazon.core.reports.ExtentManager  - Configured extent reports path to F:\Office\Amazon\AmazonMobileAutomation\Reports\AmazonMobileAutomation_29_Jun_2020_01_10_50_607.html
+06/29/2020 01:10:51	INFO   amazon.core.reports.ExtentManager  - Updated analysis strategy as TEST
+06/29/2020 01:10:51	INFO   amazon.core.reports.ExtentManager  - Configured extent reports html document title as as Amazon-Android-Test Results
+06/29/2020 01:10:51	INFO   amazon.core.reports.ExtentManager  - Configured extent report name as Amazon-Android
+06/29/2020 01:10:51	INFO   amazon.core.reports.ExtentManager  - Conifgured analysis strategy as STANDARD
+06/29/2020 01:10:51	INFO   amazon.core.reports.ExtentManager  - Updated environment Host O.S as Windows 8.1 in extent reports
+06/29/2020 01:10:51	INFO   amazon.core.reports.ExtentManager  - Updated environment Host Name -  as Lenovo-PC in extent reports
+06/29/2020 01:10:51	INFO   amazon.core.reports.ExtentManager  - Updated environment Host I.P-  as 192.168.43.88 in extent reports
+06/29/2020 01:10:51	INFO   amazon.core.listeners.TestNGListener  - Completed executing method  :- AmazonMobileTestEngine.beforeSuite
+06/29/2020 01:10:51	INFO   amazon.core.listeners.TestNGListener  - About to begin executing Test :- Amazon Tracking-Mobile: Smoke tests
+06/29/2020 01:10:51	INFO   amazon.core.listeners.TestNGListener  - About to begin executing method :- AmazonMobileTestEngine.beforeTest
+06/29/2020 01:10:59	INFO   amazon.core.reports.ExtentManager  - Updated environment Appium Ver No as 1.14.2 in extent reports
+06/29/2020 01:10:59	INFO   amazon.core.reports.ExtentManager  - Updated environment Appium Sever Url as http://0.0.0.0:4723 in extent reports
+06/29/2020 01:10:59	INFO   amazon.core.reports.ExtentManager  - Updated environment App Under Test as Amazon-Android in extent reports
+06/29/2020 01:10:59	INFO   amazon.core.reports.ExtentManager  - Updated environment App Test Environment as QA-Environment in extent reports
+06/29/2020 01:10:59	INFO   amazon.core.reports.ExtentManager  - Updated environment Mobile Under Test as RZ8M840NG3F in extent reports
+06/29/2020 01:10:59	INFO   amazon.core.reports.ExtentManager  - Updated environment Mobile OS Type as Android in extent reports
+06/29/2020 01:10:59	INFO   amazon.core.reports.ExtentManager  - Updated environment Mobile OS Version as 10 in extent reports
+06/29/2020 01:10:59	INFO   amazon.core.listeners.TestNGListener  - Completed executing method  :- AmazonMobileTestEngine.beforeTest
+06/29/2020 01:10:59	INFO   amazon.core.listeners.TestNGListener  - About to begin executing method :- AmazonAppTests.login
+06/29/2020 01:11:08	INFO   PASS  - Waiting for element
+06/29/2020 01:11:08	INFO   amazon.mobile.android.pages.AmazonAppScreens  - uccessfully Loaded Home Page-Amazon - Login detals Saved in device Already naresh.uft31@outlook.com
+06/29/2020 01:11:08	INFO   amazon.mobile.AppTest.AmazonAppTests  - Successfully logged into Amazon Mobile App
+06/29/2020 01:11:08	INFO   amazon.core.listeners.TestNGListener  - Completed executing method  :- AmazonAppTests.login
+06/29/2020 01:11:09	INFO   amazon.core.listeners.TestNGListener  - About to begin executing method :- AmazonMobileTestEngine.beforeMethod
+06/29/2020 01:11:09	INFO   amazon.core.reports.ExtentManager  - Created new test - Add Product to cart and Verify on Check out screen, in extent report
+06/29/2020 01:11:09	INFO   amazon.core.listeners.TestNGListener  - Completed executing method  :- AmazonMobileTestEngine.beforeMethod
+06/29/2020 01:11:09	INFO   amazon.core.listeners.TestNGListener  - About to begin Test :- TC01AddToCartAndVerify
+06/29/2020 01:11:09	INFO   amazon.core.listeners.TestNGListener  - About to begin executing method :- AmazonAppTests.TC01AddToCartAndVerify
+06/29/2020 01:11:12	INFO   PASS  - Waiting for element
+06/29/2020 01:11:14	INFO   PASS  - Successfully Loaded Home Page-Amazon
+06/29/2020 01:11:22	INFO   amazon.core.accelerators.AppiumActionEngine  - Waiting for element
+06/29/2020 01:11:39	INFO   PASS  - Entered text 65-inch TV
+06/29/2020 01:11:39	INFO   PASS  - Successfully Searched product- 65-inch TV
+06/29/2020 01:11:49	INFO   PASS  - Successfully product selected- Samsung 163 cm (65 Inches) Wondertainment Series Ultra HD LED Smart TV UA65TUE60AKXXL (Titan Gray) (2020 model)
+06/29/2020 01:11:51	ERROR  amazon.mobile.android.pages.AmazonAppScreens  - Fail to GetProductName 
+06/29/2020 01:11:51	INFO   PASS  - Successfully Got Product Name From Details Page null

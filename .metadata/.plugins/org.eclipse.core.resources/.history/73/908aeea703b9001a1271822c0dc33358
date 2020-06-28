@@ -1,0 +1,661 @@
+package a2b.mobile.Phase_2;
+
+import org.testng.annotations.Parameters;
+
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Random;
+
+import org.openqa.selenium.WebElement;
+import org.testng.ITestContext;
+import org.testng.annotations.AfterClass;
+import org.testng.annotations.AfterSuite;
+import org.testng.annotations.BeforeClass;
+import org.testng.annotations.DataProvider;
+import org.testng.annotations.Parameters;
+import org.testng.annotations.Test;
+import com.aventstack.extentreports.Status;
+import com.beust.jcommander.Parameter;
+
+import a2b.core.fileutils.TestDataProviders;
+import a2b.core.logs.LogManager;
+import a2b.mobile.android.engine.A2BMobileTestEngine;
+import a2b.mobile.android.pages.*;
+import io.appium.java_client.MobileBy;
+
+
+public class Phase_2_Tests extends A2BMobileTestEngine {
+	
+	private LoginPage loginPage;
+	private HomePage homePage;
+	private SearchPage searchPg;
+	private RecoveryAndPopups recoPage;
+	
+	
+	private String className = Phase_2_Tests.class.getName();
+	
+	@Test(alwaysRun = true)
+	@Parameters({"URL","userName","passWord"})
+	public void wrongCredentialLoginValidations(String URL,String userName,String passWord) throws Throwable {
+		tcReport = super.tcReport;
+		boolean res = false;
+		loginPage = new LoginPage(this.appActionEngine); 	
+		try {
+			
+			//Verify App version
+			/*
+			 * String appversion = loginPage.getAppVersion(); if (appversion.length()> 0 ) {
+			 * reportStatus(true,"Successfully verified app version- "
+			 * +appversion,"App Version") ; }else {
+			 * reportStatus(false,"Failed to verify app version- "+appversion,"App Version")
+			 * ; }
+			 */
+			 
+				if (loginPage.waitForPage()) {
+					
+					reportStatus(true,"Successfully Launched RFID App Login page","RFID-Login Page");
+					//Enter correct User Name  User Name and wrong password  ; 
+					res= loginPage.enterURL(URL);
+					reportStatus(res,"Successfully Enter URL- "+URL,"Unable to enter URL- "+URL);
+					res= loginPage.enterUserName(userName);
+					reportStatus(res,"Successfully Entered UserName- "+userName,"Unable to enter UserName- "+userName);
+					res= loginPage.enterPassWord(passWord);
+					reportStatus(res,"Successfully Entered password- "+passWord,"Unable to enter password- "+passWord);
+					res= loginPage.clickOnLoginButton();
+					reportStatus(res,"Successfully Clicked on login button ","Unable to click login button");
+					res= loginPage.isLoginButtonExist();
+					reportStatus(res,"Successfully Preventing In correct username or Password error message","Unable to prevent In correct username or Password error message");
+					if (res) {
+						attachScreenshot(Status.INFO, "Successfully Preventing In correct username or Password error message");
+					}
+					
+				}else {
+					reportStatus(false,"Failed to launch RFID-Mobile App Login page","Login page");
+				}
+					
+				} catch (Exception e) {
+					reportStatus(false,"Wrong Credential Login Validations Tect case failed to Initiate..","Login page");
+				e.printStackTrace();
+			}
+			
+	
+	}
+
+	
+	
+	@Test(alwaysRun = true)
+	@Parameters({"URL","userName","passWord"})
+	public void LoginRFIDAppUsingCorrectUsernameAndPassword(String URL,String userName,String passWord) throws Throwable {
+		tcReport = super.tcReport;
+		boolean res = false;
+		loginPage = new LoginPage(this.appActionEngine); 	
+		homePage = new HomePage(this.appActionEngine); 	
+		try {
+				if (loginPage.waitForPage()) {
+	                 Thread.sleep(1000);
+					reportStatus(true,"Successfully Launched RFID App Login page","RFID-Login Page");
+					//Enter correct User Name  User Name and  password  ; 
+					res= loginPage.enterURL(URL);
+					reportStatus(res,"Successfully Enter URL- "+URL,"Unable to enter URL- "+URL);
+					res= loginPage.enterUserName(userName);
+					reportStatus(res,"Successfully Entered UserName- "+userName,"Unable to enter UserName- "+userName);
+					res= loginPage.enterPassWord(passWord);
+					reportStatus(res,"Successfully Entered password- "+passWord,"Unable to enter password- "+passWord);
+					res= loginPage.clickOnLoginButton();
+					reportStatus(res,"Successfully Clicked on login button ","Unable to click login button");
+					res= loginPage.waitForLoginButtonDisAppear();
+					reportStatus(res,"Successfully Dis Appier Login Button ","Login Button still exist...");
+					
+					if (homePage.waitForPage()) {
+						reportStatus(true,"Successfully Logged in to RFID App","Home Page");
+						attachScreenshot(Status.INFO, "Successfully Logged in to RFID App");
+						
+						
+					}else {
+						reportStatus(false,"Failed to Login  to RFID App","Home Page");
+						attachScreenshot(Status.INFO, "Failed to Login  to RFID App");
+					}
+					
+				}else {
+					reportStatus(false,"Failed to launch RFID-Mobile App Login page","Login page");
+				}
+					
+				} catch (Exception e) {
+					reportStatus(false,"Wrong Credential Login Validations Tect case failed to Initiate..","Login page");
+				e.printStackTrace();
+			}
+	}
+			
+		@DataProvider (name="Readers")
+		public static Object[][] CreateAlertsWithMultipleSites1() throws FileNotFoundException, IOException{
+			String inpFileName = "RFIDAPPTestData.xlsx";
+			String inpSheetName = "Readers";
+			Object[][] data = TestDataProviders.loadExcelTable(inpFileName, inpSheetName);		
+			return data;		
+		}
+
+		@Test(dataProvider="Readers", dataProviderClass = Phase_2_Tests.class)
+		public void verifyReadersFuctionality(HashMap<String, String> inpDetails,ITestContext testContext) throws Throwable {
+			boolean res = false;
+			try {
+				
+				// Read Test Data 
+				String DefaultReader = inpDetails.get("DefaultReader").trim(); 
+				String TestReader = inpDetails.get("TestReader").trim(); 
+				//****** Test Start******************
+				homePage = new HomePage(this.appActionEngine); 	
+				recoPage = new RecoveryAndPopups(this.appActionEngine); 	
+				if (homePage.waitForPage()) {
+					reportStatus(true,"Successfully Login to RFID-Mobile Appp-HomPege Appeard Successfully","RFID-Home Page");
+				
+					recoPage.warningMessage("PLEASE CONNECT THE READER");
+					res= homePage.verifyRedDotExist();
+					reportStatus(res,"Successfully verified Red Dot Icon -No reader Connected","Failed to verify red dat icon-near battery");
+					res= homePage.clickOnTabChange();
+					reportStatus(res,"Successfully Clicked on Tab Change Link ","Unable to Click tab Change Link");
+					Thread.sleep(3000);
+					res= homePage.VirifyReadersPopUpExist(true);
+					reportStatus(res,"Readers pop up loaded..Successfully ","Unable to Load Readers Pop Up");
+					res= homePage.clickOnReadersPopUPCancleBtn();
+					reportStatus(res,"Successfully clicked Readers Pop up cancel Button ","Unable to click readers pop up cancel button");
+					res= homePage.VirifyReadersPopUpExist(false);
+					reportStatus(res,"Successfully verified Readers pop up disappeared  ","Readers pop up exist even click on cancle button");
+					res= homePage.clickOnTabChange();
+					reportStatus(res,"Successfully Clicked on Tab Change Link ","Unable to Click tab Change Link");
+					res= homePage.verifyListOfReadersAvailable();
+					reportStatus(res,"Successfully verified list of readers available in readers pop up ","Unable to verify list of readers on readrs popup");
+					attachScreenshot(Status.INFO, "info");
+					res= homePage.selectReadersFromList(TestReader);
+					reportStatus(res,"Successfully Selected Reader from available readers list ","Unable to select reader from available reders list");
+					attachScreenshot(Status.INFO, "info");
+					res= homePage.enableReader();
+					reportStatus(res,"Successfully Clicked on Check box to enable Reader ","Unable to select reader from available reders list");
+					reportStatus(true,"Successfully verified pop up-Connecting to reader.."+TestReader,"Unable to verify pop up- Connecting to reader..");
+					reportStatus(true,"Successfully verified pop up-Connection failed..","Unable to verify pop up- Connection failed..");
+					
+					//homePage.waitForText("Connection");
+				    Thread.sleep(10000);
+					attachScreenshot(Status.INFO, "info");
+					//Default Reader Select
+					
+					res= homePage.clickOnTabChange();
+					reportStatus(res,"Successfully Clicked on Tab Change Link ","Unable to Click tab Change Link");
+					attachScreenshot(Status.INFO, "info");
+					
+					res= homePage.selectReadersFromList(DefaultReader);
+					reportStatus(res,"Successfully Selected Reader from available readers list "+DefaultReader,"Unable to select reader from available reders list");
+					attachScreenshot(Status.INFO, "info");
+					
+					
+					
+					res= homePage.enableReader();
+					reportStatus(res,"Successfully Clicked on Check box to enable Reader ","Unable to select reader from available reders list");
+					reportStatus(true,"Successfully verified pop up-Connecting to reader.."+DefaultReader,"Unable to verify pop up- Connecting to reader..");
+					reportStatus(true,"Successfully verified pop up-Connection failed..","Unable to verify pop up- Connection failed..");
+					attachScreenshot(Status.INFO, "info");
+					
+					
+					//******** Rest Of the Steps Device Require-Manual Steps- Need to Turn ON RFD8500********
+					
+					
+				}else {
+					reportStatus(false,"Failed to Login - Home page not available","Home page");
+				}
+		
+			}catch(Exception e){
+				
+			}
+		}
+		
+		
+
+		@Test(dataProvider="Readers", dataProviderClass = Phase_2_Tests.class)
+		public void Set_RFD8500_TransmitPower(HashMap<String, String> inpDetails,ITestContext testContext) throws Throwable {
+			boolean res = false;
+			try {
+				
+				// Read Test Data 
+				String DefaultReader = inpDetails.get("DefaultReader").trim(); 
+				String TestReader = inpDetails.get("TestReader").trim(); 
+				//****** Test Start******************
+				homePage = new HomePage(this.appActionEngine); 	
+				if (homePage.waitForPage()) {
+					reportStatus(true,"Successfully Login to RFID-Mobile Appp-HomPege Appeard Successfully","RFID-Home Page");
+					res= homePage.clickOnToggleIconbar();
+					reportStatus(res,"Successfully Clicked  Home Page-Toggle icon","Fail to click home page toggle icon");
+					res=homePage.clcikHomePageToggleElements("Settings");
+					reportStatus(res,"Successfully clicked on Settings option","Fail to click Settings option");
+					attachScreenshot(Status.INFO, "info");
+					res = homePage.clcikOnSettingsPageElements("RFD8500 Transmit Power");
+					reportStatus(true,"Successfully clicked on RFD8500 Transmit Power icon ","Fail to click on RFD8500 Transmit Power icon ");
+					reportStatus(true,"RFD8500 Transmit Power screen loads successfully","Fail to load RFD8500 Transmit Power screen");
+					res = homePage.setTransmitPower("300");
+					Thread.sleep(1000);
+					reportStatus(false,"Successfully saved power level to 300 ","Fail to save power level to 300 ");
+					//attachScreenshot(Status.INFO, "info");
+					searchPg = new SearchPage(this.appActionEngine);
+					searchPg.clickOnBackButton();
+					searchPg.clickOnBackButton();
+					reportStatus(true,"Successfully Navigate back to home","Fail to Navigate back to home");
+					
+					
+				}else {
+					reportStatus(false,"HomePage","Fail To Ligin RFID App- Home Screen Not available");
+				}
+		
+			}catch(Exception e){
+				
+			}
+		}
+		
+		@DataProvider(name="Search")
+		public static Object[][] CreateAlertsWithMultipleSites() throws FileNotFoundException, IOException{
+			String inpFileName = "RFIDAPPTestData.xlsx";
+			String inpSheetName = "prolocate";
+			Object[][] data = TestDataProviders.loadExcelTable(inpFileName, inpSheetName);		
+			return data;		
+		}
+
+		@Test(dataProvider="Search", dataProviderClass = Phase_2_Tests.class)
+		public void Search_ProLocateValidations(HashMap<String, String> inpDetails,ITestContext testContext) throws Throwable {
+			boolean res = false;	
+			// Read Test Data 
+			String ItemId_1 = inpDetails.get("Partial-ItemID").trim();
+			String strItemID = inpDetails.get("ItemID").trim();
+			String strAssetClass = inpDetails.get("AssetClass").trim();
+			String strName = inpDetails.get("Name").trim(); 
+			String strDescription = inpDetails.get("Description").trim();
+			String strWarranty = inpDetails.get("Warranty").trim();
+			String strValue = inpDetails.get("Value").trim();
+			String strReceivedDate = inpDetails.get("ReceivedDate").trim();
+			String strManufactureDate = inpDetails.get("ManufactureDate").trim();
+			String strManufacturer = inpDetails.get("Manufacturer").trim(); 
+			String strMfgPartNumber = inpDetails.get("MfgPartNumber").trim();
+			String mfgSerialNum = inpDetails.get("MfgSerialNumber").trim();
+			String inventoryDate = inpDetails.get("InventoryDate").trim(); 
+			String custodian = inpDetails.get("Custodian").trim();
+			String location = inpDetails.get("Location").trim();
+			String assignee = inpDetails.get("Assignee").trim(); 
+			String dueBackDate = inpDetails.get("DueBackDate").trim();
+			String checkOutDate = inpDetails.get("Check-OutDate").trim();
+			String checkOutNotes = inpDetails.get("Check-OutNotes").trim();
+		
+			homePage = new HomePage(this.appActionEngine);
+			
+			
+			
+			try {		
+			//homePage.RefreshHomePageElements();
+			if (homePage.waitForPage()) {
+				reportStatus(true,"Successfully Logged in to Mobile Home Page","Home page"); 
+				res = homePage.clickHomeIcon("Search");
+				reportStatus(res,"Successfully Clicked On Search ICon On Mobile-HomePage ","failed to click on Search Icon On-Mobile HomePage");
+				searchPg = new SearchPage(this.appActionEngine);
+				
+				if (searchPg.waitForPage()) {
+					reportStatus(true,"verified Successfully-The Search / Pro-Locate page loads in barcode mode automatically with the cursor flashing in the search box ","Search Page"); 
+					
+					res= searchPg.ClickSearchButton();
+					reportStatus(res,"Successfully clicked on search button","unable to Click on Search button");
+					reportStatus(res,"Successfully verified error-please enter somthing in search box ","Fail to verify error-please enter somthing in search box ");
+					
+		
+					res= searchPg.SearchAsset(ItemId_1);
+					reportStatus(res,"Search operation done successfully ","Search operation fail ");
+					
+					res= searchPg.VerifySearchResult();
+					reportStatus(res,"Search result verification Completed successfully ","Search reasult verification failed ");
+					attachScreenshot(Status.INFO, "Search Reasults-Referance");
+					
+					res= searchPg.ClickSeeeMoreButton();
+					reportStatus(res,"Successfully clicked on See more button on Search result ","fail to click on See more button-Search Result ");
+					
+					res= searchPg.VerifySearchResult();
+					reportStatus(res,"Search result verification Completed successfully ","Search reasult verification failed ");
+					attachScreenshot(Status.INFO, "Search Reasults-Referance");
+					
+					res = searchPg.selectIdFromSearchResult(strItemID);
+					reportStatus(res,"Successfully Selected  ","Search reasult verification failed ");
+					//******* verify Asset Detail - Verification********
+					if (searchPg.fullViewAssetDetailPage()) {
+						  searchPg.AssetDetals("ItemID", strItemID);
+						  searchPg.AssetDetals("AssetClass", strAssetClass);
+						  searchPg.AssetDetals("Name", strName);
+						  searchPg.AssetDetals("Description", strDescription);
+						  searchPg.AssetDetals("Warranty", strWarranty);
+						  searchPg.AssetDetals("Value", strValue);
+						  searchPg.AssetDetals("ReceivedDate", strReceivedDate);
+						  searchPg.AssetDetals("ManufactureDate", strManufactureDate);
+						  searchPg.AssetDetals("Manufacturer", strManufacturer);
+						  searchPg.AssetDetals("PartNumber", strMfgPartNumber);
+						  searchPg.AssetDetals("Serial", mfgSerialNum);
+						  searchPg.AssetDetals("InventoryDate", inventoryDate);
+						  searchPg.AssetDetals("Custodian", custodian);
+						  searchPg.AssetDetals("Location", location);
+						  searchPg.AssetDetals("Assignee", assignee);
+						  searchPg.AssetDetals("DueBackDate", dueBackDate);
+						  searchPg.AssetDetals("CheckoutDate", checkOutDate);
+						  searchPg.AssetDetals("CheckoutNotes", checkOutNotes);
+						  searchPg.AssetDetals("CheckoutNotes", checkOutNotes);
+						  attachScreenshot(Status.INFO, "info");
+						  // Prolocate
+						  res= searchPg.clickOnProLocate();
+						  reportStatus(res,"Successfully Navigate to Pro-Locate Screen","Fail to Navigate Pro-Locate Screen");
+						  reportStatus(res,"Item ID Displayed - successfully  "+strItemID,"Fail To Display Item ID-"+strItemID);
+						  res= searchPg.VerifyProlocate();
+						  reportStatus(res,"Successfully Clicked On Start-Icon ","Fail to click on Start-Icon");
+						  Thread.sleep(2000);
+						  reportStatus(false,"Successfully bigin Scan ","Fail to Begin Scan...");
+						  
+						  res = searchPg.clickOnBackButton();
+						  res = searchPg.clickOnBackButton();
+							reportStatus(res,"Successfull Navigated Back to Asset detal page.","Failed to ");
+							
+						  
+						  
+						  //******************************* Not Supported test -Steps******************************
+						  
+					}else {
+						reportStatus(false,"Asset detial  ","Fail to set Asset detial Full screen view");
+					}
+					res = searchPg.clickOnBackButton();
+					reportStatus(res,"Successfull Navigated to Home Page..","Failed to Navigate home page");
+					
+				}
+			}else {
+				reportStatus(true,"Failed to Login RFID-Mobile App -Unable to Load Home page","Home page");
+			}
+				
+			} catch (Exception e) {
+				reportStatus(false,"Search Asset Tect case failed to Initiate..","Search Asset");
+			e.printStackTrace();
+		}
+	}
+
+
+		
+		@DataProvider(name="EditAsset")
+		public static Object[][] EditAssetDetails() throws FileNotFoundException, IOException{
+			String inpFileName = "RFIDAPPTestData.xlsx";
+			String inpSheetName = "EditAsset";
+			Object[][] data = TestDataProviders.loadExcelTable(inpFileName, inpSheetName);		
+			return data;		
+		}
+
+		@Test(dataProvider="EditAsset", dataProviderClass = Phase_2_Tests.class)
+		public void Search_EditAssetDetailsValidations(HashMap<String, String> inpDetails,ITestContext testContext) throws Throwable {
+			boolean res = false;	
+			// Read Test Data 
+			
+			String strItemID = inpDetails.get("ItemID").trim();
+			String strAssetClass = inpDetails.get("AssetClass").trim();
+			String strName = inpDetails.get("Name").trim(); 
+			String strDescription = inpDetails.get("Description").trim();
+			String strWarranty = inpDetails.get("Warranty").trim();
+			String strValue = inpDetails.get("Value").trim();
+			String strReceivedDate = inpDetails.get("ReceivedDate").trim();
+			String strManufactureDate = inpDetails.get("ManufactureDate").trim();
+			String strManufacturer = inpDetails.get("Manufacturer").trim(); 
+			String strMfgPartNumber = inpDetails.get("MfgPartNumber").trim();
+			String mfgSerialNum = inpDetails.get("MfgSerialNumber").trim();
+			String inventoryDate = inpDetails.get("InventoryDate").trim(); 
+			String custodian = inpDetails.get("Custodian").trim();
+			String location = inpDetails.get("Location").trim();
+			String assignee = inpDetails.get("Assignee").trim(); 
+			String dueBackDate = inpDetails.get("DueBackDate").trim();
+			String checkOutDate = inpDetails.get("Check-OutDate").trim();
+			String checkOutNotes = inpDetails.get("Check-OutNotes").trim();
+		     //Custom Fileds
+			String strOrderNumber = inpDetails.get("OrderNumber").trim();
+			String strItemNum = inpDetails.get("ItemNum").trim();
+			String strServiceOrder = inpDetails.get("ServiceOrder").trim();
+			String strEditName = inpDetails.get("EditName").trim();
+			String EditSerialNumb = inpDetails.get("EditSerialNumb").trim();
+			String strEditcustodian = inpDetails.get("Editcustodian").trim();
+			String strEditassetClass = inpDetails.get("EditAssetClass").trim();
+			String strEditLocation = inpDetails.get("EditLocation").trim();
+			String EditSerialNumb1 = inpDetails.get("EditSerialNumb1").trim();
+			String strEditcustodian1 = inpDetails.get("Editcustodian1").trim();
+			String strEditassetClass1 = inpDetails.get("EditAssetClass1").trim();
+			String strEditLocation1 = inpDetails.get("EditLocation1").trim();
+			
+			homePage = new HomePage(this.appActionEngine);
+			
+			try {		
+			//homePage.RefreshHomePageElements();
+			if (homePage.waitForPage()) {
+				reportStatus(true,"Successfully Logged in to Mobile Home Page","Home page"); 
+				res = homePage.clickHomeIcon("Search");
+				reportStatus(res,"Successfully Clicked On Search ICon On Mobile-HomePage ","failed to click on Search Icon On-Mobile HomePage");
+				searchPg = new SearchPage(this.appActionEngine);
+				
+				if (searchPg.waitForPage()) {
+					reportStatus(true,"verified Successfully-The Search / Pro-Locate page loads in barcode mode automatically with the cursor flashing in the search box ","Search Page"); 
+					res= searchPg.SearchAsset(strItemID);
+					reportStatus(res,"Search operation done successfully for- "+strItemID,"Search operation fail- "+strItemID);
+					
+					//******* verify Asset Detail - Verification********
+					if (searchPg.fullViewAssetDetailPage()) {
+						reportStatus(true,"Asset Details screen loaded Successfully ","Asset Detal Page ");
+						
+						  searchPg.AssetDetals("ItemID", strItemID);
+						  searchPg.AssetDetals("AssetClass", strAssetClass);
+						  searchPg.AssetDetals("Name", strName);
+						  searchPg.AssetDetals("Description", strDescription);
+						  searchPg.AssetDetals("Warranty", strWarranty);
+						  searchPg.AssetDetals("Value", strValue);
+						  searchPg.AssetDetals("ReceivedDate", strReceivedDate);
+						  searchPg.AssetDetals("ManufactureDate", strManufactureDate);
+						  //************ Custom Fields ***********
+						  searchPg.VerifyAssetDetalsCustomFileds("Order Number", strOrderNumber);
+						  searchPg.VerifyAssetDetalsCustomFileds("Item Number", strItemNum);
+						  searchPg.VerifyAssetDetalsCustomFileds("Service Order", strServiceOrder);
+						  //**************************************
+						  searchPg.AssetDetals("Manufacturer", strManufacturer);
+						  searchPg.AssetDetals("PartNumber", strMfgPartNumber);
+						  searchPg.AssetDetals("Serial", mfgSerialNum);
+						  searchPg.AssetDetals("InventoryDate", inventoryDate);
+						  searchPg.AssetDetals("Custodian", custodian);
+						  searchPg.AssetDetals("Location", location);
+						  searchPg.AssetDetals("Assignee", assignee);
+						  searchPg.AssetDetals("DueBackDate", dueBackDate);
+						  searchPg.AssetDetals("CheckoutDate", checkOutDate);
+						  searchPg.AssetDetals("CheckoutNotes", checkOutNotes);
+						  attachScreenshot(Status.INFO, "info");
+						  // Prolocate
+						  
+							/*
+							 * 5. Click Battery icon - PASS / FAIL 6. Battery status for the RFD8500 shows
+							 * with a percentage and a status of Discharging - PASS / FAIL 7. Click back
+							 * button - PASS / FAIL
+							 * 
+							 */
+						  // Edit Asset
+						  res = searchPg.clickEditAsset();
+						  reportStatus(res,"Successfully Clicked on Edit Asset","Fail to Click Edit Asset link");
+						  Thread.sleep(2000);
+						  reportStatus(res,"Successfully loaded  Edit Asset screen","Fail to Edit Asset screen");
+						  attachScreenshot(Status.INFO, "info");
+						  searchPg.verifyAssetEditPageContent("itemId",strItemID);
+						  searchPg.verifyAssetEditPageContent("itemName",strName);
+						  searchPg.verifyAssetEditPageContent("assetClass",strAssetClass);
+						  searchPg.verifyAssetEditPageContent("serialNumber", mfgSerialNum);
+						  searchPg.verifyAssetEditPageContent("Assignee",custodian);
+						  searchPg.verifyAssetEditPageContent("Location",location);
+						  // Edit Asset
+						  searchPg.EnterTextOnEditAssetDetails("itemName", strEditName, false);
+						  searchPg.EnterTextOnEditAssetDetails("serialNumber", EditSerialNumb, false);
+						  searchPg.EnterTextOnEditAssetDetails("Assignee", strEditcustodian, true);
+						  searchPg.EnterTextOnEditAssetDetails("assetClass", strEditassetClass, true);
+						  searchPg.EnterTextOnEditAssetDetails("Location", strEditLocation, true);
+						  attachScreenshot(Status.INFO, "info");
+						  searchPg.fullViewEditAssetDetail();
+						  res = searchPg.clickSaveButton();
+						  Thread.sleep(4000);
+						  reportStatus(res,"Successfully clicked on save button and Saved Asset details","Fail to click on save button");
+						  attachScreenshot(Status.INFO, "info");
+						  
+						  // Verify Edit Asset Details and Existence details
+						  
+						  
+						  searchPg.fullViewAssetDetailPage();
+						  reportStatus(res,"Successfully Scrool to Full view Asset Detal Screen","Fail to scrool - full view Asset detail screen");
+						  searchPg.AssetDetals("ItemID", strItemID);
+						  searchPg.AssetDetals("AssetClass", strEditassetClass);
+						  searchPg.AssetDetals("Name", strEditName);
+						  searchPg.AssetDetals("Description", strDescription);
+						  searchPg.AssetDetals("Warranty", strWarranty);
+						  searchPg.AssetDetals("Value", strValue);
+						  searchPg.AssetDetals("ReceivedDate", strReceivedDate);
+						  searchPg.AssetDetals("ManufactureDate", strManufactureDate);
+						  //************ Custom Fields ***********
+						  searchPg.VerifyAssetDetalsCustomFileds("Order Number", strOrderNumber);
+						  searchPg.VerifyAssetDetalsCustomFileds("Item Number", strItemNum);
+						  searchPg.VerifyAssetDetalsCustomFileds("Service Order", strServiceOrder);
+						  //**************************************
+						  searchPg.AssetDetals("Manufacturer", strManufacturer);
+						  searchPg.AssetDetals("PartNumber", strMfgPartNumber);
+						  searchPg.AssetDetals("Serial", EditSerialNumb);
+						  searchPg.AssetDetals("InventoryDate", inventoryDate);
+						  searchPg.AssetDetals("Custodian", strEditcustodian);
+						  searchPg.AssetDetals("Location", strEditLocation);
+						  searchPg.AssetDetals("Assignee", assignee);
+						  searchPg.AssetDetals("DueBackDate", dueBackDate);
+						  searchPg.AssetDetals("CheckoutDate", checkOutDate);
+						  searchPg.AssetDetals("CheckoutNotes", checkOutNotes);
+						  attachScreenshot(Status.INFO, "info");
+						  
+	                      // Verify Edit Asset Page Content - After Successfully edited
+						  
+						  res = searchPg.clickEditAsset();
+						  reportStatus(res,"Successfully Clicked on Edit Asset","Fail to Click Edit Asset link");
+						  Thread.sleep(2000);
+						  reportStatus(res,"Successfully loaded  Edit Asset screen","Fail to Edit Asset screen");
+						  attachScreenshot(Status.INFO, "info");
+						  searchPg.verifyAssetEditPageContent("itemId",strItemID);
+						  searchPg.verifyAssetEditPageContent("itemName",strEditName);
+						  searchPg.verifyAssetEditPageContent("assetClass",strEditassetClass);
+						  searchPg.verifyAssetEditPageContent("serialNumber", EditSerialNumb);
+						  searchPg.verifyAssetEditPageContent("Assignee",strEditcustodian);
+						  searchPg.verifyAssetEditPageContent("Location",strEditLocation);
+						  
+						  //Back - To Asset Details Screen
+						  res = searchPg.clickOnBackButton();
+						  reportStatus(res,"Successfully Clicked on Back Button","Fail to click Back button");
+						  res= searchPg.waitForPage();
+						  reportStatus(res,"verified Successfully-The Search / Pro-Locate page loads in barcode mode automatically with the cursor flashing in the search box ","Search Page");
+						  
+
+	                      // Verify Edit Asset Page Content - After Successfully edited
+						  
+						  res = searchPg.clickEditAsset();
+						  reportStatus(res,"Successfully Clicked on Edit Asset","Fail to Click Edit Asset link");
+						  Thread.sleep(2000);
+						  reportStatus(res,"Successfully loaded  Edit Asset screen","Fail to Edit Asset screen");
+						  attachScreenshot(Status.INFO, "info");
+						  searchPg.verifyAssetEditPageContent("itemId",strItemID);
+						  searchPg.verifyAssetEditPageContent("itemName",strEditName);
+						  searchPg.verifyAssetEditPageContent("assetClass",strEditassetClass);
+						  searchPg.verifyAssetEditPageContent("serialNumber", EditSerialNumb);
+						  searchPg.verifyAssetEditPageContent("Assignee",strEditcustodian);
+						  searchPg.verifyAssetEditPageContent("Location",strEditLocation);
+						  
+						  //Again-Edit Asset details
+						 
+						  searchPg.EnterTextOnEditAssetDetails("serialNumber", EditSerialNumb1, false);
+						  searchPg.EnterTextOnEditAssetDetails("Assignee", strEditcustodian1, true);
+						  searchPg.EnterTextOnEditAssetDetails("assetClass", strEditassetClass1, true);
+						  searchPg.EnterTextOnEditAssetDetails("Location", strEditLocation1, true);
+						
+						  searchPg.fullViewEditAssetDetail();
+						  res = searchPg.clickSaveButton();
+						  
+						  Thread.sleep(4000);
+						  reportStatus(res,"Successfully clicked on save button and Saved Asset details","Fail to click on save button");
+						  attachScreenshot(Status.INFO, "info");
+						  
+						  // full view asset detail screen apply scro
+						  searchPg.fullViewAssetDetailPage();
+						  reportStatus(res,"Successfully Scrool to Full view Asset Detal Screen","Fail to scrool - full view Asset detail screen");
+						
+						  searchPg.AssetDetals("ItemID", strItemID);
+						  searchPg.AssetDetals("AssetClass", strEditassetClass1);
+						  searchPg.AssetDetals("Name", strEditName);
+						  searchPg.AssetDetals("Description", strDescription);
+						  searchPg.AssetDetals("Warranty", strWarranty);
+						  searchPg.AssetDetals("Value", strValue);
+						  searchPg.AssetDetals("ReceivedDate", strReceivedDate);
+						  searchPg.AssetDetals("ManufactureDate", strManufactureDate);
+						  //************ Custom Fields ***********
+						  searchPg.VerifyAssetDetalsCustomFileds("Order Number", strOrderNumber);
+						  searchPg.VerifyAssetDetalsCustomFileds("Item Number", strItemNum);
+						  searchPg.VerifyAssetDetalsCustomFileds("Service Order", strServiceOrder);
+						  //**************************************
+						  searchPg.AssetDetals("Manufacturer", strManufacturer);
+						  searchPg.AssetDetals("PartNumber", strMfgPartNumber);
+						  searchPg.AssetDetals("Serial", EditSerialNumb1);
+						  searchPg.AssetDetals("InventoryDate", inventoryDate);
+						  searchPg.AssetDetals("Custodian", strEditcustodian1);
+						  searchPg.AssetDetals("Location", strEditLocation1);
+						  searchPg.AssetDetals("Assignee", assignee);
+						  searchPg.AssetDetals("DueBackDate", dueBackDate);
+						  searchPg.AssetDetals("CheckoutDate", checkOutDate);
+						  searchPg.AssetDetals("CheckoutNotes", checkOutNotes);
+						  attachScreenshot(Status.INFO, "info");
+						  
+						  // Click On ProLocate
+			
+						  res= searchPg.clickOnProLocate();
+						  reportStatus(res,"Successfully Navigate to Pro-Locate Screen","Fail to Navigate Pro-Locate Screen");
+						  reportStatus(res,"Item ID Displayed - successfully  "+strItemID,"Fail To Display Item ID-"+strItemID);
+						  res= searchPg.VerifyProlocate();
+						  reportStatus(res,"Successfully Clicked On Start-Icon ","Fail to click on Start-Icon");
+						  Thread.sleep(2000);
+						  reportStatus(false,"Successfully bigin Scan ","Fail to Begin Scan...");
+						  
+						  //******************************* Not Supported test -Steps******************************
+						  
+					}else {
+						reportStatus(false,"Asset detial  ","Fail to set Asset detial Full screen view");
+					}
+					//res = searchPg.clickOnBackButton();
+					//reportStatus(res,"Successfull Navigated to Home Page..","Failed to Navigate home page");
+					
+				}
+			}else {
+				reportStatus(false,"Home Page","Failed to Login RFID-Mobile App -Unable to Load Home page");
+			}
+				
+			} catch (Exception e) {
+				reportStatus(false,"Search Asset Tect case failed to Initiate..","Search Asset");
+			e.printStackTrace();
+		}
+	}
+
+
+	
+@AfterClass(alwaysRun=true)
+public void logOut() {
+	//homePage.LogOut();
+}
+
+
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+

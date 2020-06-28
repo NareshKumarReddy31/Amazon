@@ -1,0 +1,241 @@
+package amazon.mobile.android.engine;
+
+import java.util.List;
+
+import org.testng.ITestContext;
+import org.testng.annotations.AfterMethod;
+import org.testng.annotations.AfterSuite;
+import org.testng.annotations.AfterTest;
+import org.testng.annotations.BeforeMethod;
+import org.testng.annotations.BeforeSuite;
+import org.testng.annotations.BeforeTest;
+import org.testng.annotations.Optional;
+import org.testng.annotations.Parameters;
+import com.aventstack.extentreports.ExtentTest;
+import com.aventstack.extentreports.Status;
+
+import amazon.config.gblConstants;
+import amazon.core.accelerators.AbstractTestEngine;
+import amazon.core.accelerators.WebActionEngine;
+
+
+
+
+public  class A2BWebTestEngine extends AbstractTestEngine {
+
+	public A2BWebActionEngine a2bWebActionEngg = null;
+	//public BusinessFunctions pgCommon ;
+	//public WindowsActionEngine corningWinEngine = null;
+	public boolean isWindows=false;
+	public String UserName;
+	public String Password;
+	
+	private final static Object loginsync= new Object(); 
+	
+	@BeforeSuite(alwaysRun=true)
+	@Parameters({"BrowserUT","ExecutionEnv", "AppTestEnv","testRunName"})
+	public void beforeSuite(@Optional("chrome")String testBrowser, String execEnvName, @Optional(gblConstants.projA2BWeb) String appTestEnv, 
+			@Optional("") String runName) {
+    			
+		this.execEnv = execEnvName;
+		this.browserUnderTest = testBrowser;
+		this.appUnderTest = gblConstants.projA2BWeb; 
+		this.testEnvName = appTestEnv;
+
+		initializeReport();
+		reportTestAppEnvironmentSummary();
+	}
+
+	//@Override
+	@AfterSuite(alwaysRun=true)
+	public void afterSuite(WebActionEngine webEngine) {
+		
+		extentMngr.flushReport();
+		//Clean up
+		//killProcess("IEDriverServer.exe");
+	}
+	
+	@BeforeMethod
+	@Parameters({"testCaseName"})
+	public void beforeMethod(String tcName,ITestContext testContext) {
+		this.tcReport = extentMngr.addTest(tcName, "Corning Login Test");
+		//loginUsingDefaultUser();
+	}
+	
+
+	@Override
+	@BeforeTest
+	public void beforeTest(ITestContext testContext) {
+		
+		this.execEnv = getExecutionParameter(testContext, "ExecutionEnv");
+		this.browserUnderTest = getExecutionParameter(testContext, "BrowserUT");
+		this.appUnderTest = gblConstants.projA2BWeb; 
+		this.testEnvName = getExecutionParameter(testContext, "AppTestEnv");
+		
+
+		a2bWebActionEngg = new A2BWebActionEngine();
+		launchBrowser(a2bWebActionEngg);
+		//loadApplication(a2bWebActionEngg);
+		
+	}
+/*	
+	
+	@Override
+	@AfterTest
+	public void afterTest() {
+		HomePage homepg = new HomePage(this.corningActionEngine);
+		homepg.CorninglogOut();
+	}
+	
+*/
+	
+	@Override
+	 public boolean loginUsingDefaultUser() {
+		boolean res = false ;	
+		 synchronized(loginsync) { 
+		String loginUser = gblConstants.suiteConfig.getTestAppLoginUser(this.appUnderTest, this.testEnvName);
+		String loginPwd = gblConstants.suiteConfig.getTestAppLoginPwd(this.appUnderTest, this.testEnvName);
+		//LoginPage pgLogin = new LoginPage(this.a2bWebActionEngg);
+		//.loginPwd.res= pgLogin.login(this.UserName , this.Password);	 
+		 reportStatus(res, "Successfully logged into Success factors", "Unable to Log Into Successfactors");
+		
+		//return pgHome.waitForPage();
+	       }
+	return res ; 
+	}
+	
+	
+	
+	
+	
+	@Override
+	public void reportTestAppEnvironmentSummary() {
+		reportWebEnvironmentSummary();
+	}
+
+	@Override
+	public boolean attachScreenshot(Status result, String screenshotName) {
+		boolean blnRes = false;
+		if (screenshotName.length() > 0) {
+			if (!isWindows) { // To take screenshot for both Web and Window
+				blnRes = this.extentMngr.attachScreenshot(this.tcReport, result,
+						this.a2bWebActionEngg.captureScreenShot(gblConstants.reportsPath, screenshotName));
+			} else {
+				//blnRes = this.extentMngr.attachScreenshot(this.tcReport, result,
+						//this.corningWinEngine.captureScreenShot(gblConstants.reportsPath, screenshotName));
+			}
+		}
+		return blnRes;
+	}
+
+	@Override
+	@AfterSuite(alwaysRun=true)
+	public void afterSuite() {
+		// TODO Auto-generated method stub
+
+		this.extentMngr.flushReport();
+		this.a2bWebActionEngg.closeDriver();
+		//this.corningActionEngine.closeDriver();
+		
+		//Clean up
+		//killProcess("IEDriverServer");
+		//killProcess("Winium.Desktop.Driver");
+		//testngAssertion.assertAll();
+	}	
+	
+/*	
+ * 
+ * 
+ */
+
+	@AfterMethod
+	public void flushReport() {
+		/*HomePage homepg = new HomePage(this.corningActionEngine);
+		homepg.CorninglogOut();*/
+		
+		
+		this.tcReport=null;
+		this.extentMngr.flushReport();
+	}
+	
+/*	*//**
+     * @purpose:  To ReportMultiple Test Case Reports
+     * @ Input params tcreportsList: List of Extent Test Objects,blnresult ,Strings success and Failure messages
+     * @
+     *//*
+*/	
+	
+	public void reportStatus(ExtentTest [] tcreportsList, boolean blnRes, String successMsg, String failureMsg) {
+
+		Status currTCStatus = Status.INFO;
+		String logMessage = "";
+		if (blnRes) {
+			currTCStatus = Status.PASS;
+			logMessage = successMsg;
+		} else {
+			currTCStatus = Status.FAIL;
+			logMessage = failureMsg;
+		}
+
+		for (ExtentTest currReport : tcreportsList) {
+			if (currReport != null) {
+				//reportStatus(currTCStatus, logMessage);
+				currReport.log(currTCStatus, logMessage);
+			}
+
+			if (currTCStatus == Status.FAIL) {
+				this.extentMngr.attachScreenshot(currReport, Status.FAIL,
+						this.a2bWebActionEngg.captureScreenShot(gblConstants.reportsPath, failureMsg));
+			}
+
+		}
+	}
+		
+		public void reportStatus(List<ExtentTest> tcreportsList, boolean blnRes, String successMsg, String failureMsg) {
+
+			Status currTCStatus = Status.INFO;
+			String logMessage = "";
+			if (blnRes) {
+				currTCStatus = Status.PASS;
+				logMessage = successMsg;
+			} else {
+				currTCStatus = Status.FAIL;
+				logMessage = failureMsg;
+			}
+ 
+			for (ExtentTest currReport : tcreportsList) {
+				if (currReport != null) {
+					//reportStatus(currTCStatus, logMessage);
+					currReport.log(currTCStatus, logMessage);
+				}
+
+				if (currTCStatus == Status.FAIL) {
+					this.extentMngr.attachScreenshot(currReport, Status.FAIL,
+							this.a2bWebActionEngg.captureScreenShot(gblConstants.reportsPath, failureMsg));
+				}
+
+			}
+	
+		}
+
+	
+		@Override
+		public void beforeSuite(String execEnvName, String testBrowser, String appUT, String appTestEnv, String devUT) {
+			// TODO Auto-generated method stub
+			
+		}
+
+		@Override
+		public void beforeTest(ITestContext testContext, String testRailsTCId) {
+			// TODO Auto-generated method stub
+			
+		}
+
+		@Override
+		public void afterTest() {
+			// TODO Auto-generated method stub
+			
+		}
+
+
+}

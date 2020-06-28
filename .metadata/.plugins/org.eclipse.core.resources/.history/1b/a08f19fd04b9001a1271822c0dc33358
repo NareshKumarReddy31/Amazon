@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<suite name="A2B Tracking-Automation-test" allow-return-values="false">
+	<listeners>
+		<listener class-name="a2b.core.listeners.TestNGListener" />
+	</listeners>
+
+	<!-- Execution Environment Parameters -->
+	<parameter name="BrowserUT" value="chrome" />
+	<parameter name="ExecutionEnv" value="local" />
+	<parameter name="AppTestEnv" value="QA-Environment" />
+	<parameter name="testRunName" value="Smoke test Plan GUI" />
+	 <test name="Mobile- Environment Set UP">
+		<classes>
+			<class name="a2b.mobile.Phase_3.GlobalDataFiltersWebTests">	
+				 <methods>
+					<include name="Phase_3_DB_Restore">
+					 <parameter name="testCaseName" value="Phase:3- DB_Restore-2" />
+					</include>
+					
+					<include name="CreateLocationsAndCategory">
+					 <parameter name="testCaseName" value="Phase:3- Global Data Filters :Create Locations And Categories" />
+					</include>
+					
+					<include name="AssociateLocationsToAnAsset">
+					 <parameter name="testCaseName" value="Phase:3- Global Data Filters :Associate Locations To AnAssets" />
+					</include>
+					
+					<include name="CreateAndVerifyGDF">
+					 <parameter name="testCaseName" value="Phase:3- Global Data Filters :Create And Verify Global data Filters" />
+					</include>
+					
+					<include name="verifyGDFUserAssetss">
+					 <parameter name="testCaseName" value="Phase:3- Global Data Filters : verify GDF User Assetss" />
+					</include>
+				</methods>
+			</class>
+		</classes>
+	</test>
+</suite>

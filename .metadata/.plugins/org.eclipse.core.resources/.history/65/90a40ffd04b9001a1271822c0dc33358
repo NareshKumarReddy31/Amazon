@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<suite name="A2B Tracking-Automation-test" allow-return-values="false">
+	<listeners>
+		<listener class-name="a2b.core.listeners.TestNGListener" />
+	</listeners>
+
+	<!-- Execution Environment Parameters -->
+	<parameter name="BrowserUT" value="chrome" />
+	<parameter name="ExecutionEnv" value="local" />
+	<parameter name="AppTestEnv" value="QA-Environment" />
+	<parameter name="testRunName" value="Smoke test Plan GUI" />
+	 <test name="Mobile- Environment Set UP">
+		<classes>
+			<class name="a2b.mobile.Phase_1.UCWeb_Phase_1">	
+				 <methods>
+					<include name="UCWeb_Phase1">
+					 <parameter name="testCaseName" value="Phase_1_UCWeb Prerequisite Setup" />
+					</include>
+				</methods>
+			</class>
+		</classes>
+	</test>
+</suite>

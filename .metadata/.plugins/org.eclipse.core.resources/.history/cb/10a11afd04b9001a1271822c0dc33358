@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<suite name="A2B-Mobile" allow-return-values="false">
+	<listeners>
+		<listener class-name="a2b.core.listeners.TestNGListener" />
+	</listeners>
+	
+	<!--  Execution Environment Parameters  -->
+	
+	<parameter name="AppiumVerNo" value="1.14.2" />
+	<parameter name="AppiumServerUrl" value="http://0.0.0.0:4723" />
+	<parameter name="AppUT" value="A2B-Android" />
+	<parameter name="AppTestEnv" value="QA-Environment" />
+	<parameter name="DeviceUT" value="9887bc34495755394d" />
+	
+
+	<!-- Test case: include test rails id -->
+	<test name="A2B Tracking-Mobile: Smoke tests">
+		<classes>
+			<class name="a2b.mobile.Phase_6.CheckOutAndCheckInTests">
+				<methods>
+					<include name="Test01_CheckOutVerification">
+					<parameter name="testCaseName" value="Phase-6: Test01:- Verify Check Out functionality" />
+					</include>	 
+					
+					 <include name="Test02_VerifyCheckOutAssetDetails">
+					<parameter name="testCaseName" value="Phase-6: Test02:- Verify Checked Out Asset Details" />
+					</include>	
+					<include name="Test03_tryToCheckOutAlreadyCheckedOutAsset">
+					<parameter name="testCaseName" value="Phase-6: Test03:- Try To Check Out Already Checked Out Asset" />
+					</include>	
+					
+					<include name="Test04_CheckInVerification">
+					<parameter name="testCaseName" value="Phase-6: Test04:- Verify Check- In Functionality" />
+					</include>	
+					<include name="Test05_VerifyCheckInAssetDetails">
+					<parameter name="testCaseName" value="Phase-6: Test05:- Verify Checked - In Asset Details" />
+					</include>	
+						
+				</methods>
+			</class>
+		</classes>
+	</test>
+</suite>  

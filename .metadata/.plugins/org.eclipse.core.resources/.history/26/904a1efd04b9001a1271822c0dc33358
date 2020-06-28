@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<suite name="A2B-Mobile" allow-return-values="false">
+
+	<listeners>
+
+
+		<listener class-name="a2b.core.listeners.TestNGListener" />
+	</listeners>
+	
+	<!--  Execution Environment Parameters  -->
+	
+	<parameter name="AppiumVerNo" value="1.14.2" />
+	<parameter name="AppiumServerUrl" value="http://0.0.0.0:4723" />
+	<parameter name="AppUT" value="A2B-Android" />
+	<parameter name="AppTestEnv" value="QA-Environment" />
+	<parameter name="DeviceUT" value="9887bc34495755394d" />
+	
+
+	<!-- Test case: include test rails id -->
+	<test name="A2B Tracking-Mobile: Smoke tests">
+		<classes>
+			<class name="a2b.mobile.Phase_7.GroupingsTests">
+				<methods>
+					 <include name="Test01_VerifyGroupingsFunctionality">
+					<parameter name="testCaseName" value="Phase-7: Test01_VerifyGroupingsFunctionality" />
+					</include >
+					
+				   <include name="Test02_VerifyGroupingsFunctionality">
+					<parameter name="testCaseName" value="Phase-7: Test02_VerifyGroupingsFunctionality" />
+					</include>	
+					
+						
+				</methods>
+			</class>
+		</classes>
+		
+	</test>
+</suite>  

@@ -1,0 +1,321 @@
+package a2b.mobile.Phase_7;
+
+
+import org.testng.annotations.Parameters;
+
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.HashMap;
+
+import java.util.Random;
+
+import org.testng.ITestContext;
+import org.testng.annotations.AfterClass;
+import org.testng.annotations.AfterSuite;
+import org.testng.annotations.BeforeClass;
+import org.testng.annotations.DataProvider;
+import org.testng.annotations.Parameters;
+import org.testng.annotations.Test;
+import com.aventstack.extentreports.Status;
+
+import a2b.core.fileutils.TestDataProviders;
+import a2b.core.logs.LogManager;
+import a2b.mobile.Home.tests.HomePageTest;
+import a2b.mobile.android.engine.A2BMobileTestEngine;
+import a2b.mobile.android.pages.*;
+import amazon.core.accelerators.AppiumActionEngine.DIRECTION;
+import groovyjarjarantlr.collections.List;
+
+
+public class GroupingsTests extends A2BMobileTestEngine {
+	
+	private LoginPage loginPage;
+	private HomePage homePage;
+	private SearchPage searchPg;
+	private CreateAssetPage createAssetpg;
+	private AssignPage Assignpg;
+	private GroupingsPage groupingsPg;
+	
+	private String className = GroupingsTests.class.getName();;
+	
+	@BeforeClass
+	public void login() throws Throwable {
+		try {
+			tcReport = super.tcReport;
+			if (loginUsingDefaultUser()) {
+				LogManager.logInfo(this.className ,"Successfully logged into RFID Mobile APp");
+				
+			} else {
+				LogManager.logInfo(this.className,"Unable to Log Into ICM GUI");
+			}
+
+		} catch (Exception e) {
+			e.printStackTrace();
+			LogManager.logException(e, className, "Exception to login into  ICM GUI application");
+		}
+	} 
+	
+	
+	
+	@DataProvider(name="Groupings")
+	public static Object[][] CreateAlertsWithMultipleSites() throws FileNotFoundException, IOException{
+		String inpFileName = "RFIDAPPTestData.xlsx";
+		String inpSheetName = "Groupings";
+		Object[][] data = TestDataProviders.loadExcelTable(inpFileName, inpSheetName);		
+		return data;		
+	}
+
+	@Test(dataProvider="Groupings", dataProviderClass = GroupingsTests.class)
+	public void Test01_VerifyGroupingsFunctionality(HashMap<String, String> inpDetails,ITestContext testContext) throws Throwable {
+		boolean res = false;	
+		// Read Test Data 
+		String location = inpDetails.get("Location").trim();
+		String GroupName = inpDetails.get("GroupingName").trim();
+		String unScannedList = inpDetails.get("UnSannedList").trim();
+		String[] unscannedItems = unScannedList.split(";");
+		
+
+		homePage = new HomePage(this.appActionEngine);	
+		searchPg = new SearchPage(this.appActionEngine);	
+	     groupingsPg = new GroupingsPage(this.appActionEngine);	
+		try {		
+		//homePage.RefreshHomePageElements();
+		if (homePage.waitForPage()) {
+			reportStatus(true,"Successfully Logged in to Mobile Home Page","Home page"); 
+			
+			homePage.fullViewHomeScreen();
+			res = homePage.clickHomeIcon("Groupings");
+			reportStatus(res,"Successfully Clicked On Groupins ICon On Mobile-Home Screen ","failed to click on Groupings Icon On-Mobile HomePage");
+			createAssetpg = new CreateAssetPage(this.appActionEngine);
+			Assignpg = new AssignPage(this.appActionEngine);
+			if (groupingsPg.waitForPage()) {
+				reportStatus(true,"The Groupings page loaded with no Groupings present  ","The Groupings page loaded with existing  Groupings present ");
+				
+			res= this.appActionEngine.isElementPresent(homePage.GetElementBasedOnText( "No Groupings registered yet, you can add one!"), "Grouping screen message", true);
+				
+				// Click On create
+			
+			
+			res= this.appActionEngine.click(homePage.GetElementBasedOnText( "ADD GROUPING"));
+
+			reportStatus(res,"successfully clicked Add Grouping Icon ","Fail to click Add Grouping Icon");
+			reportStatus(res,"The Add Grouping screen loads in RFID mode and with cursor flashing in Name box ","Verification failed- Add Grouping screen loads in RFID mode and with cursor flashing in Name box ");
+			// Enter  Group creation details
+			 this.appActionEngine.enterText(homePage.GetElementBasedOnText("Name"), GroupName);
+			 reportStatus(res,"Successfully enteredGroup Name:- "+GroupName,"Fail to enter group name:- "+GroupName);
+		     res= Assignpg.EnterTextOnEditAssigneeScreen("Location", location, true);
+
+		     attachScreenshot(Status.INFO, "info");
+			 reportStatus(res,"Successfully entered Location:- "+location,"Fail to enter Location:- "+location);
+			 res= this.appActionEngine.click(homePage.GetElementBasedOnText( "CREATE"));
+			 reportStatus(res,"Successfully clicked on create icon","Fail to click on create");
+			
+			 reportStatus(res,"The Grouping is created and the main Groupings page loads with it listed","Fail to create Group");
+			 Thread.sleep(2000);
+			 attachScreenshot(Status.INFO, "info");
+			 
+			 // Verify Group Content
+			 
+			 res= groupingsPg.clickOnThreeDots();
+			 reportStatus(res,"There are three dots near the My Trunk grouping "," No Dots exist near Grouping");
+			 reportStatus(res,"Successfully click on Three Dots Icon "," Fail to click near three dots icon");
+			 
+			 // Verify 3 Dots contain Functionality
+			
+			 res= this.appActionEngine.isElementPresent(homePage.GetElementBasedOnText( "INVENTORY"), "Inventory", true);
+			 reportStatus(res,"Successfully verified Inventory Exist "," Inventory Does Not exist");
+			 res= this.appActionEngine.isElementPresent(homePage.GetElementBasedOnText( "EDIT"), "Edit", true);
+			 reportStatus(res,"Successfully verified Edit Exist "," Edit Does Not exist");
+			 res= this.appActionEngine.isElementPresent(homePage.GetElementBasedOnText( "DELETE"), "Delete", true);
+			 reportStatus(res,"Successfully verified Delete Exist "," Delete Does Not exist");
+			 attachScreenshot(Status.INFO, "info");
+			
+			 res= groupingsPg.clickOnThreeDots();
+			 reportStatus(res,"Successfully click on Three Dots Icon "," Fail to click near three dots icon");
+			 reportStatus(res,"The main Groupings page loads with the My Trunk grouping listed  "," Fail tload main grouping screen");
+			
+			 //Click on Group Name-to verify details
+			 
+			 res= this.appActionEngine.click(homePage.GetElementBasedOnText( "My Trunk"));
+			 reportStatus(res,"successfully clicked onlisted Grop- MyTrunk  "," Fail to click on - My Trunk");
+			 reportStatus(res,"The Grouping Details screen loads in RFID mode "," Fail to load RFID mode-Grouping detail screen");
+			 reportStatus(res,"The grouping name of “My Trunk” is at the top of the screen ","Group name does not display on top of screen");
+			 reportStatus(res,"Successfully verified An Eligible Assets count of 13 shows with a Eligible Assets Scanned % of 0.00% ","Fail to verify eligible asset count");
+			 attachScreenshot(Status.INFO, "info");
+			 // Click on eligible asset link
+			 
+			 res = groupingsPg.clickOnEligibleAssetLink();
+			 reportStatus(res,"The 13 items are listed to be scanned ","Fail to verify 13 items listed scan..");
+			 
+			 Thread.sleep(200);attachScreenshot(Status.INFO, "info");
+			 groupingsPg.verifyElementsPresent(unscannedItems);
+			 res= searchPg.clickOnBackButton();
+			 
+			 
+			 
+			 // Click Start
+			 res= this.appActionEngine.isElementPresent(homePage.GetElementBasedOnText( "START"), "START", true);
+			 reportStatus(res,"Successfully verified START BUTTON Exist "," START Does Not exist");
+			 
+			 res= this.appActionEngine.isElementPresent(homePage.GetElementBasedOnText( "RESET"), "RESET", true);
+			 reportStatus(res,"Successfully verified Reset BUTTON Exist "," Reset Does Not exist");
+			 
+			 // CLICK ON RESET bUTTON 
+				
+				res= this.appActionEngine.click(homePage.GetElementBasedOnText( "RESET"));
+
+				reportStatus(res,"successfully clicked RESET Icon ","Fail to click RESET Icon");Thread.sleep(2000);
+				reportStatus(res,"A popup opens with Reset Grouping Screen as the title and “Do you want to reset the grouping data screen ","Fail to OPEN WARNING POP UP");
+			 this.appActionEngine.driver.switchTo().alert().dismiss();
+			 reportStatus(res,"successfully clicked on cancel button on alert ","Fail to click Cancel Icon");
+			 reportStatus(res,"successfully verified-The Grouping Details screen loads again as it was  ","Groping screen does not load properly");
+			 
+			 
+			 // Battery 
+			 
+			 res= this.appActionEngine.click(homePage.redDot);
+			  attachScreenshot(Status.INFO, "info");
+			 reportStatus(res,"successfully clicked on battery icon ","Fail to click battery Icon");
+			 reportStatus(false,"Battery status for the RFD8500 shows with a percentage and a status of Discharging","Fail show RFD8500 shows with a percentage and a status of Discharging");
+			  Thread.sleep(2000);
+			  res= searchPg.clickOnBackButton();
+			  attachScreenshot(Status.INFO, "info");Thread.sleep(2000);
+
+			 
+			 
+			 
+			 // Navigate to home screen 
+			  reportStatus(res,"successfully clicked on Back icon ","Fail to click Back Icon");
+			  reportStatus(res,"verified-A popup opens entitled Exit Grouping Details Screen with “Do you want to exit the grouping details screen ","Fail to verify warning pop up");
+				
+			 res= searchPg.clickOnBackButton();
+			 Thread.sleep(2000);
+			  this.appActionEngine.driver.switchTo().alert().accept();
+			 reportStatus(res,"successfully accept alert ","Fail to accept alert");
+			 
+			 res= searchPg.clickOnBackButton();
+			 this.appActionEngine.driver.switchTo().alert().accept();
+			 reportStatus(homePage.waitForPage(),"successfully home screen ","Fail to navigate to home screen");
+			 
+			}else {
+				reportStatus(false,"Groupings Page ","fail to navigate to Groupings screen");
+			}
+			
+		}
+		}catch(Exception e) {
+			reportStatus(false,"Test01_VerifyGroupingsFunctionality","Test01_VerifyGroupingsFunctionality Fail to initiate..");
+			e.printStackTrace();
+		}
+	}
+	
+	@Test(dataProvider="Groupings", dataProviderClass = GroupingsTests.class)
+	public void Test02_VerifyGroupingsFunctionality(HashMap<String, String> inpDetails,ITestContext testContext) throws Throwable {
+		boolean res = false;	
+		// Read Test Data 
+		String location = inpDetails.get("Location").trim();
+		String GroupName = inpDetails.get("GroupingName").trim();
+		String unScannedList = inpDetails.get("UnSannedList").trim();
+		String[] unscannedItems = unScannedList.split(";");
+		String ScannedList = inpDetails.get("ScannedList").trim();
+		String[] scannedItems = ScannedList.split(";");
+
+		homePage = new HomePage(this.appActionEngine);	
+		searchPg = new SearchPage(this.appActionEngine);	
+	     groupingsPg = new GroupingsPage(this.appActionEngine);	
+		try {		
+		//homePage.RefreshHomePageElements();
+		if (homePage.waitForPage()) {
+			reportStatus(true,"Successfully Logged in to Mobile Home Page","Home page"); 
+			
+			homePage.fullViewHomeScreen();
+			res = homePage.clickHomeIcon("Groupings");
+			reportStatus(res,"Successfully Clicked On Groupins ICon On Mobile-Home Screen ","failed to click on Groupings Icon On-Mobile HomePage");
+			createAssetpg = new CreateAssetPage(this.appActionEngine);
+			Assignpg = new AssignPage(this.appActionEngine);
+			if (groupingsPg.waitForPage()) {
+				
+				
+			 reportStatus(res,"The main Groupings page loads with the My Trunk grouping listed ","Fail to load my trunk group");
+			 Thread.sleep(2000);
+			 attachScreenshot(Status.INFO, "info");
+			 
+			 
+			 //Click on Group Name-to verify details
+			 
+			 res= this.appActionEngine.click(homePage.GetElementBasedOnText( "My Trunk"));
+			 reportStatus(res,"successfully clicked onlisted Grop- MyTrunk  "," Fail to click on - My Trunk");
+			 reportStatus(res,"The Grouping Details screen loads in RFID mode "," Fail to load RFID mode-Grouping detail screen");
+			 reportStatus(res,"The grouping name of “My Trunk” is at the top of the screen ","Group name does not display on top of screen");
+			 reportStatus(res,"Successfully verified An Eligible Assets count of 13 shows with a Eligible Assets Scanned % of 0.00% ","Fail to verify eligible asset count");
+			 attachScreenshot(Status.INFO, "info");
+			
+			 // Verify Items On Detail Screen
+			 groupingsPg.verifyElementsPresent(scannedItems);
+			 attachScreenshot(Status.INFO, "info");
+			 
+			 
+			 
+			 // Click on eligible asset link
+			 
+			 res = groupingsPg.clickOnEligibleAssetLink();
+			 reportStatus(res,"The 13 items are listed to be scanned ","Fail to verify 13 items listed scan..");
+			 
+			 Thread.sleep(200);attachScreenshot(Status.INFO, "info");
+			 groupingsPg.verifyElementsPresent(unscannedItems);
+			 attachScreenshot(Status.INFO, "info");
+			
+			 // Battery 
+			 
+			 res= this.appActionEngine.click(homePage.redDot);
+			 attachScreenshot(Status.INFO, "info");
+			 reportStatus(res,"successfully clicked on battery icon ","Fail to click battery Icon");
+			 reportStatus(false,"Battery status for the RFD8500 shows with a percentage and a status of Discharging","Fail show RFD8500 shows with a percentage and a status of Discharging");
+			 Thread.sleep(2000);
+			 res= searchPg.clickOnBackButton();
+			 reportStatus(res,"successfully clicked on Back icon ","Fail to click Back Icon");
+			 attachScreenshot(Status.INFO, "info");
+			 //reportStatus(groupingsPg.waitForPage(),"successfully navigate to Grouping screen ","Fail to navigate to grouping screen");
+			 Thread.sleep(200);attachScreenshot(Status.INFO, "info");
+			 groupingsPg.verifyElementsPresent(unscannedItems);
+			 
+			 // Navigate back to detail screen
+			 res= searchPg.clickOnBackButton();
+			 reportStatus(res,"successfully clicked on Back icon ","Fail to click Back Icon");
+			 attachScreenshot(Status.INFO, "info");
+			 reportStatus(res,"successfully loaded detal screen ","Fail to ndetail screen");
+			 Thread.sleep(200);attachScreenshot(Status.INFO, "info");
+			 // Verify 13 Listed to be scan
+			 // Verify Items On Detail Screen
+			 reportStatus(res,"Successfully verified An Eligible Assets count of 13 shows with a Eligible Assets Scanned % of 0.00% ","Fail to verify eligible asset count");
+			 groupingsPg.verifyElementsPresent(scannedItems);
+			 attachScreenshot(Status.INFO, "info");
+			 // Navigate to home screen 
+			 res= searchPg.clickOnBackButton();
+			 reportStatus(res,"successfully clicked on Back icon ","Fail to click Back Icon");
+			 reportStatus(res,"verified-A popup opens entitled Exit Grouping Details Screen with “Do you want to exit the grouping details screen ","Fail to verify warning pop up");
+			 this.appActionEngine.driver.switchTo().alert().accept();
+			 reportStatus(res,"successfully accept alert ","Fail to accept alert");
+			Thread.sleep(2000);
+			 // Navigate to home
+			 res= searchPg.clickOnBackButton();
+			 Thread.sleep(2000);
+			 this.appActionEngine.driver.switchTo().alert().accept();
+			 reportStatus(homePage.waitForPage(),"successfully home screen ","Fail to navigate to home screen");
+			}else {
+				reportStatus(false,"Groupings Page ","fail to navigate to Groupings screen");
+			}
+			
+		}
+		}catch(Exception e) {
+			reportStatus(false,"Test01_VerifyGroupingsFunctionality","Test01_VerifyGroupingsFunctionality Fail to initiate..");
+			e.printStackTrace();
+		}
+	}
+		
+	
+	
+	
+
+}

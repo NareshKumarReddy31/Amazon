@@ -1,0 +1,460 @@
+package a2b.mobile.android.pages;
+
+import java.awt.Robot;
+import java.awt.event.KeyEvent;
+import java.util.HashMap;
+import java.util.List;
+
+import org.openqa.selenium.By;
+import org.openqa.selenium.JavascriptExecutor;
+import org.openqa.selenium.WebElement;
+import org.openqa.selenium.interactions.Actions;
+import org.openqa.selenium.interactions.touch.TouchActions;
+import org.openqa.selenium.remote.RemoteWebElement;
+import org.openqa.selenium.support.PageFactory;
+
+import a2b.config.gblConstants;
+import a2b.core.accelerators.AppiumActionEngine;
+import a2b.core.accelerators.AppiumActionEngine.DIRECTION;
+import a2b.core.logs.LogManager;
+import a2b.mobile.android.engine.A2BMobileActionEngine;
+import a2b.mobile.android.engine.A2BMobileTestEngine;
+import io.appium.java_client.MobileBy;
+import io.appium.java_client.MobileElement;
+import io.appium.java_client.TouchAction;
+import io.appium.java_client.pagefactory.AndroidFindBy;
+import io.appium.java_client.pagefactory.AppiumFieldDecorator;
+
+public class SearchPage extends A2BMobileTestEngine{
+	private A2BMobileActionEngine appEngine = null;
+	
+	
+	
+	public final String eleEditAsset = "xpath=//android.widget.EditText[contains(@resource-id,'"+ gblConstants.replaceText+"')]";
+	
+	
+	
+	
+	
+	
+	 @AndroidFindBy(id = "com.a2b.rfid.rfidandroid:id/editTextIDorSerial")
+		private WebElement search_box_Asset;	
+	 @AndroidFindBy(id = "com.a2b.rfid.rfidandroid:id/buttonSearch")
+		private WebElement btnSearch;	
+	 
+	 
+	 
+	 
+	 
+	 @AndroidFindBy(accessibility = "com.a2b.rfid.rfidandroid:id/textItemID")
+		private WebElement itemID;
+	 
+	 @AndroidFindBy(xpath = "//android.widget.ImageButton[@content-desc='Navigate up']")
+		private WebElement backButton;
+	 
+	
+	 @AndroidFindBy(xpath = "//android.support.v7.widget.RecyclerView/./android.widget.LinearLayout")
+		private WebElement searchResultPanel;
+	 
+	 @AndroidFindBy(id = "com.a2b.rfid.rfidandroid:id/buttonSeeMore")
+		private WebElement btnSeeMore;
+	 
+	 @AndroidFindBy(id = "com.a2b.rfid.rfidandroid:id/buttonLocate")
+		private WebElement btnProLocate;
+	 
+	 @AndroidFindBy(xpath = "//*[@text='START']")
+		private WebElement start;
+	 
+	 @AndroidFindBy(id = "com.a2b.rfid.rfidandroid:id/editSerialNumberButton")
+		private WebElement editAssetButton;
+	 
+	/*
+	 * @AndroidFindBy(id = "com.a2b.rfid.rfidandroid:id/itemIdEditText") private
+	 * WebElement edtItemID;
+	 * 
+	 * @AndroidFindBy(id = "com.a2b.rfid.rfidandroid:id/itemNameEditText") private
+	 * WebElement edtName;
+	 * 
+	 * @AndroidFindBy(id = "com.a2b.rfid.rfidandroid:id/assetClassEditTex") private
+	 * WebElement edtAssetClass;
+	 * 
+	 * @AndroidFindBy(id = "com.a2b.rfid.rfidandroid:id/serialNumberEditText")
+	 * private WebElement edtSerialNum;
+	 * 
+	 * @AndroidFindBy(id = "com.a2b.rfid.rfidandroid:id/editTextAssignee") private
+	 * WebElement edtAssignee;
+	 * 
+	 * @AndroidFindBy(id = "com.a2b.rfid.rfidandroid:id/editTextLocation") private
+	 * WebElement edtLocation;
+	 */
+	 @AndroidFindBy(xpath = "//*[@text='Order Number']")
+		private WebElement edtOrderNum;
+	 @AndroidFindBy(id = "//*[@text='Service Order']")
+		private WebElement edtServiceOrder;
+	 
+	 @AndroidFindBy(id = "com.a2b.rfid.rfidandroid:id/fieldAutocomplete")
+		private WebElement edtAutoUpdate;
+	 
+	 @AndroidFindBy(id = "com.a2b.rfid.rfidandroid:id/editAssetButton")
+		private WebElement edtSave;
+	
+	
+		
+	 
+	
+	//*************************************************************************************
+
+	
+	
+		public SearchPage(A2BMobileActionEngine actEng) {
+			appEngine = actEng;
+			PageFactory.initElements(new AppiumFieldDecorator(appEngine.getDriver()),this);
+			 //actEng.loadPage();
+		}
+		
+	
+		public boolean waitForPage() {
+			boolean res = false;
+			try {
+				res = this.appEngine.waitForElementVisibles(search_box_Asset, gblConstants.pageLoadTimeout * 2);
+			} catch (Exception e) {
+				LogManager.logError(LoginPage.class.getName(), "Failed to load the Search Page..");
+			}
+			return res;
+		}
+		
+	public boolean RefreshHomePageElements() {
+		boolean res= false;
+		try {	
+		res = this.appEngine.swipe(this.appEngine.driver, DIRECTION.LEFT);
+		}catch (Exception e) {
+			
+		}
+		return res;
+	}
+	
+	
+	public boolean clickOnProLocate() {
+		boolean res= false;
+		try {	
+		res = this.appEngine.click(btnProLocate);
+		}catch (Exception e) {
+			LogManager.logInfo(HomePage.class.getName(), "Failed clickOnProLocate");	
+		}
+		return res;
+	}
+	
+	public boolean clickSaveButton() {
+		boolean res= false;
+		try {	
+		res = this.appEngine.click(edtSave);
+		}catch (Exception e) {
+			LogManager.logInfo(HomePage.class.getName(), "Failed clickSaveButton");	
+		}
+		return res;
+	}
+
+	public boolean VerifyProlocate() {
+		boolean res= false;
+		try {	
+		res = this.appEngine.click(start);
+		}catch (Exception e) {
+			LogManager.logInfo(HomePage.class.getName(), "Failed VerifyProlocate");	
+		}
+		return res;
+	}
+	
+	
+	public boolean ClickSearchButton() {
+		boolean res= false;
+		try {	
+		 res= this.appEngine.click(btnSearch);
+		}catch (Exception e) {
+			 LogManager.logInfo(HomePage.class.getName(), "Failed Click Search Button-");	
+		}
+		return res;
+	}
+	
+	
+	public boolean clickOnProlocate() {
+		boolean res= false;
+		try {	
+		 res= this.appEngine.click(btnProLocate);
+		}catch (Exception e) {
+			 LogManager.logInfo(HomePage.class.getName(), "Failed to clickOnProlocate");	
+		}
+		return res;
+	}
+	
+	public boolean clickEditAsset() {
+		boolean res= false;
+		try {	
+		 res= this.appEngine.click(editAssetButton);
+		}catch (Exception e) {
+			 LogManager.logInfo(HomePage.class.getName(), "Failed to clickEditAsset Icon");	
+		}
+		return res;
+	}
+
+	public boolean compareText(String Text) {
+		boolean res= false;
+		try {	
+		 res= this.appEngine.click(editAssetButton);
+		}catch (Exception e) {
+			 LogManager.logInfo(HomePage.class.getName(), "Failed to clickEditAsset Icon");	
+		}
+		return res;
+	}
+	
+	
+	public boolean ClickSeeeMoreButton() {
+		boolean res= false;
+		try {	
+		 res = this.appEngine.waitForElementVisibles(btnSeeMore, gblConstants.pageLoadTimeout * 2);
+		 res= this.appEngine.click(btnSeeMore);
+		}catch (Exception e) {
+			 LogManager.logInfo(HomePage.class.getName(), "Failed to Click on Seee More Button"+e);	
+		}
+		return res;
+	}
+	
+public boolean SearchAsset(String id) {
+	boolean res= false;
+	try {	
+		
+     this.appEngine.enterText(search_box_Asset, id);
+     reportStatus(true,"Successfully enter Value on to search filed "+id,"Fail to enter value on to serach filed- "+id);
+	 res = this.appEngine.click(btnSearch);
+	 reportStatus(res,"Successfully Clicked on search button","Fail to click on search button");
+	}catch (Exception e) {
+		 LogManager.logInfo(HomePage.class.getName(), "Failed Search Asset Method-"+e);	
+	}
+	return res;
+}
+
+
+
+
+
+
+public boolean VerifySearchResult() {
+boolean res= false;
+try {	
+	Thread.sleep(5000);
+	@SuppressWarnings("unchecked")
+	List<MobileElement> ele = this.appEngine.driver.findElementsByXPath("//android.support.v7.widget.RecyclerView/./android.widget.LinearLayout");
+	
+	for (int i=0;i< ele.size();i++) {		
+		List<MobileElement> elchild_ele = ele.get(i).findElementsByXPath("//android.widget.TextView");
+		
+		if (elchild_ele.size()>0) {
+
+			  String id= elchild_ele.get(0).getText();
+			  String serial = elchild_ele.get(1).getText();
+			  reportStatus(true,"Search Result listed successfully ID: "+id+" Searial Num :-"+serial,"Reader List");
+				res= true;
+			
+		}
+	}
+}catch (Exception e) {
+	 LogManager.logInfo(HomePage.class.getName(), "Failed Search Asset Method-"+e);	
+}
+return res;
+}
+
+public boolean selectIdFromSearchResult(String val) {
+boolean res= false;
+try {
+	
+	@SuppressWarnings("unchecked")
+	List<MobileElement> ele = this.appEngine.driver.findElementsByXPath("//android.support.v7.widget.RecyclerView/./android.widget.LinearLayout");
+	for (int i=0;i< ele.size();i++) {	
+		List<MobileElement> elchild_ele = ele.get(i).findElementsByXPath("//android.widget.TextView");
+		  String id= elchild_ele.get(0).getText();
+		  String serial = elchild_ele.get(1).getText();
+		if (id.contains(val)) {
+			ele.get(i).click();
+			reportStatus(true,"Successfully selected Item Id from search results-"+id ,"Item List");
+			res= true;
+			//this.appEngine.swipe(this.appEngine.driver, DIRECTION.UP);
+			break;
+		}
+	}
+}catch (Exception e) {
+	 LogManager.logInfo(HomePage.class.getName(), "Failed to select item Id From Search Result"+e);	
+}
+return res;
+}
+
+
+
+
+
+
+
+
+
+
+
+public boolean verifyAssetElementVal(String eleName) {
+	boolean res= false;
+	try {	
+  
+	}catch (Exception e) {
+		 LogManager.logInfo(HomePage.class.getName(), "Failed Search Asset Method-"+e);	
+	}
+	return res;
+}
+
+
+public boolean clickOnBackButton() {
+	boolean res= false;
+	try {	
+		Thread.sleep(3000);
+		res= this.appEngine.click(backButton);
+		
+  
+	}catch (Exception e) {
+		 LogManager.logInfo(HomePage.class.getName(), "Failed claik clickOnBackButton");	
+	}
+	return res;
+}
+
+public boolean fullViewAssetDetailPage() {
+	boolean res= false;
+	try {	
+		  
+	  	 Thread.sleep(5000);
+	  	 this.appEngine.hideKeyboard();
+		 res = this.appEngine.ScroolElementVisible("com.a2b.rfid.rfidandroid:id/layout_details","Check-Out Notes:");
+  
+	}catch (Exception e) {
+		 LogManager.logInfo(HomePage.class.getName(), "Failed fullViewAssetDetailPage");	
+	}
+	return res;
+}
+
+public boolean fullViewEditAssetDetail() {
+	boolean res= false;
+	try {	
+		  
+	  	 Thread.sleep(5000);
+		 res = this.appEngine.ScroolElementVisible("com.a2b.rfid.rfidandroid:id/navHost","SAVE");
+  
+	}catch (Exception e) {
+		 LogManager.logInfo(HomePage.class.getName(), "Failed fullViewAssetDetailPage");	
+	}
+	return res;
+}
+
+
+
+
+public boolean EnterTextOnEditAssetDetails(String FiledIDText,String value, boolean autoPopUpFiled) {
+	boolean res= false;
+	try {	
+		String ele= eleEditAsset .replace(gblConstants.replaceText, FiledIDText);
+		res= this.appEngine.enterTxt(this.appEngine.getElement(ele), value);
+		if (autoPopUpFiled) {
+			Robot rb = new Robot();
+			rb.keyPress(KeyEvent.VK_DOWN);
+			rb.keyRelease(KeyEvent.VK_DOWN);
+			rb.keyPress(KeyEvent.VK_ENTER);
+			rb.keyRelease(KeyEvent.VK_ENTER);
+		}
+		reportStatus(res,"Successfully Enter value on Edit Asset Screen- filed- "+FiledIDText+" : "+value ,"Failed to enter value on Edit asset detail Screen"); 
+	}catch (Exception e) {
+		 LogManager.logInfo(HomePage.class.getName(), "Failed EnterTextOnEditAssetDetails");	
+	}
+	return res;
+}
+ 
+
+public boolean verifyAssetEditPageContent(String FiledIDText,String ExpectedVal ) {
+	boolean res= false;
+	try {	
+		
+		String ele= eleEditAsset .replace(gblConstants.replaceText, FiledIDText);
+		String val =this.appEngine.getVisibleText(this.appEngine.getElement(ele));
+		// Verify Item ID filed Disabled
+		if (FiledIDText.toUpperCase().contains("ITEMID")) {
+			if (! this.appEngine.getElement(ele).isEnabled()) {
+				reportStatus(true,"Successfully Verified -Asset ID Disabled- "+ExpectedVal,"Item ID");
+			}else {
+				reportStatus(false,"Item ID","Item ID Enabled-Edit Asset Screen-"+ExpectedVal);
+			}
+				
+		}
+		// Verify Actual and Expected value
+		if(val.contains(ExpectedVal) || val.trim().length() == ExpectedVal.length()) {
+			reportStatus(true,"Asset details Edit Screen displayed correctly-"+FiledIDText+"-: "+ExpectedVal,"Asset Detal");
+		    res = true;
+		}
+	}catch (Exception e) {
+		 LogManager.logInfo(HomePage.class.getName(), "Failed verifyAssetEditPageContent");	
+	}
+	return res;
+}
+
+public boolean AssetDetals (String ExpectedID,String ExpectedVal) {
+	boolean res= false;
+	try {
+		
+		int a = 0 ;
+		//Thread.sleep(2000);
+		List<MobileElement> ele = this.appEngine.driver.findElementsByXPath("//android.widget.TextView[contains(@resource-id,'text"+ExpectedID+"')]");
+		for (int i = 0; i<=ele.size();i++ ) {
+				String val = ele.get(i).getAttribute("text");
+			    if (val.toString().contains(ExpectedVal) || val.trim().length() == ExpectedVal.length()) {
+			    	reportStatus(true,"Asset details displayed correctly-"+ExpectedID+"-: "+ExpectedVal,"Asset Detal");
+			    	res= true; 
+					break;
+			    }else {
+			    	reportStatus(false,"Asset Detal","Asset Detal does not displayed correctly for "+ ExpectedID+ "- "  +ExpectedVal);
+			    }
+			
+		}	
+		}catch (Exception e) {
+			reportStatus(false,"Asset details Failed to verify- "+ExpectedID+"-: "+ExpectedVal,"Asset Detal");
+			 LogManager.logInfo(HomePage.class.getName(), "Failed click Home Icon -Method-"+e);
+		}
+		return res;
+	
+}
+
+
+public boolean VerifyAssetDetalsCustomFileds (String ExpectedID,String ExpectedVal) {
+	boolean res= false;
+	try {
+		
+		List<MobileElement> eleTitle = this.appEngine.driver.findElementsByXPath("//android.widget.TextView[contains(@resource-id,'titleTextView')]");
+		for (int i = 0; i<=eleTitle.size();i++ ) {
+				String val = eleTitle.get(i).getAttribute("text");
+			    if (val.contains(ExpectedID) || val.trim().length() == ExpectedVal.length()) {
+			    	List<MobileElement> eleval = this.appEngine.driver.findElementsByXPath("//android.widget.TextView[contains(@resource-id,'valueTextView')]");
+			    	String Vals = eleval.get(i-1).getAttribute("text");
+			    	if(Vals.contains(ExpectedID) || Vals.trim().length() == ExpectedVal.length()) {
+			    		reportStatus(true,"Asset details displayed correctly-"+ExpectedID+"-: "+ExpectedVal,"Asset Detal");
+				    	res= true; 
+						break;
+			    	}else {
+			    		reportStatus(false,"Asset Detal","Asset Detal does not displayed correctly for "+ ExpectedID+ "- "  +ExpectedVal);
+			    	}
+			    	
+			    } 	    	
+			    
+			
+		}	
+		}catch (Exception e) {
+			reportStatus(false,"Asset details Failed to verify- "+ExpectedID+"-: "+ExpectedVal,"Asset Detal-VerifyAssetDetalsCustomFileds");
+			 LogManager.logInfo(HomePage.class.getName(), "Fail - VerifyAssetDetalsCustomFileds");
+		}
+		return res;
+	
+}
+
+
+
+
+
+}

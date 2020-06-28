@@ -1,0 +1,23 @@
+package a2b.web.businessfunctions;
+
+
+
+import java.util.List;
+import org.openqa.selenium.Keys;
+import org.openqa.selenium.WebElement;
+import com.aventstack.extentreports.ExtentTest;
+import com.aventstack.extentreports.Status;
+
+import a2b.config.gblConstants;
+import a2b.core.accelerators.AppiumActionEngine;
+import a2b.core.logs.LogManager;
+
+public class BusinessFunctions   {
+
+	AppiumActionEngine apiumeng = new AppiumActionEngine();
+	
+	
+}
+
+
+

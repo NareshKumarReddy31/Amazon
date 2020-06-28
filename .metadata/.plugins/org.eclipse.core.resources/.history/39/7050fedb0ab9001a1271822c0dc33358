@@ -1,0 +1,64 @@
+{
+       "apps":
+       [{
+              "name": "A2B-Android",
+              "appium.version":"1.14.2",
+              "localhost.port" : "4723",
+              "app.package" : "com.a2b.rfid.rfidandroid",
+              "app.activity" : "com.a2b.rfid.rfidandroid.Splash",
+              "automation.name" : "uiautomator2",
+              "screenshot.folder" : "screenshot",
+              "environments": [{
+                     "name":"QA-Environment",
+                     "url":"devweb.a2btracking.lan/rfidtracker/",
+                     "username": "nsmobile",
+                     "password" : "nsmobile"
+              }],
+              "devices" : [{
+                     "name":"9887bc34495755394d",
+                     "platform.name": "Android",
+                     "platform.version" : "8.0.0",
+                     "device.name" : "9887bc34495755394d",
+                     "userid.number" : "1"
+              }]
+       },
+
+      {       
+	           "name": "A2B-Web",
+			  "pageTitle": "Log On",
+              "screenshot.folder" : "screenshot",
+              "environments": [{
+                     "name":"QA-Environment",
+                     "url":"http://devweb/rfidtracker/",
+                     "username": "nsmobile",
+                     "password" :"nsmobile"
+
+                      }]	
+	
+      },
+
+            {       
+	           "name": "AppTester-Build",
+			  "appium.version":"1.14.2",
+              "localhost.port" : "4723",
+              "app.package" : "dev.firebase.appdistribution",
+              "app.activity" : "dev.firebase.appdistribution.main.MainActivity",
+              "automation.name" : "uiautomator2",
+              "screenshot.folder" : "screenshot",
+              "environments": [{
+                     "name":"QA-Environment",
+                     "url":"http://devweb/rfidtracker/",
+                     "username": "",
+                     "password" :""
+
+                      }],"devices" : [{
+                     "name":"9887bc34495755394d",
+                     "platform.name": "Android",
+                     "platform.version" : "8.0.0",
+                     "device.name" : "9887bc34495755394d",
+                     "userid.number" : "1"
+              }]	
+	
+      }]
+}
+

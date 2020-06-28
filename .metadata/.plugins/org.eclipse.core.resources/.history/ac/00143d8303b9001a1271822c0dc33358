@@ -1,0 +1,404 @@
+package a2b.mobile.Phase_3;
+
+
+
+import org.testng.annotations.Parameters;
+
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.Random;
+
+import org.testng.ITestContext;
+import org.testng.annotations.AfterClass;
+import org.testng.annotations.AfterSuite;
+import org.testng.annotations.BeforeClass;
+import org.testng.annotations.DataProvider;
+import org.testng.annotations.Parameters;
+import org.testng.annotations.Test;
+import com.aventstack.extentreports.Status;
+
+import a2b.core.accelerators.AppiumActionEngine.DIRECTION;
+import a2b.core.fileutils.TestDataProviders;
+import a2b.core.logs.LogManager;
+import a2b.mobile.Home.tests.HomePageTest;
+import a2b.mobile.android.engine.A2BMobileTestEngine;
+import a2b.mobile.android.pages.*;
+
+
+public class GloblaDataFiltersMobileTests extends A2BMobileTestEngine {
+	
+	private LoginPage loginPage;
+	private HomePage homePage;
+	private SearchPage searchPg;
+	private AssignPage Assignpg;
+	private InventoryPage InventoryPg;
+	private CheckOutPage checkOutPg;
+	private CheckInPage checkInPg;
+	private CreateAssetPage createAssetPg;
+	private GroupingsPage groupingsPg;
+	
+	
+	
+	
+	private String className = GloblaDataFiltersMobileTests.class.getName();;
+	
+	@BeforeClass
+	public void login() throws Throwable {
+		try {
+			tcReport = super.tcReport;
+			if (loginUsingDefaultUser()) {
+				LogManager.logInfo(this.className ,"Successfully logged into RFID Mobile APp");
+				
+			} else {
+				LogManager.logInfo(this.className,"Unable to Log Into ICM GUI");
+			}
+
+		} catch (Exception e) {
+			e.printStackTrace();
+			LogManager.logException(e, className, "Exception to login into  ICM GUI application");
+		}
+	} 
+	
+	
+	
+	@DataProvider(name="GLBFilters")
+	public static Object[][] GLBFilters() throws FileNotFoundException, IOException{
+		String inpFileName = "RFIDAPPTestData.xlsx";
+		String inpSheetName = "GlobalDataFilters";
+		Object[][] data = TestDataProviders.loadExcelTable(inpFileName, inpSheetName);		
+		return data;		
+	}
+     // Phase-3 : Verify Assets as per GDF applied
+	@Test(dataProvider="GLBFilters", dataProviderClass = GloblaDataFiltersMobileTests.class)
+	public void TS01_GLBFilters(HashMap<String, String> inpDetails,ITestContext testContext) throws Throwable {
+		boolean res = false;	
+		// Read Test Data 
+		String AS_1 = inpDetails.get("AS-1").trim();
+		String AS_2 = inpDetails.get("AS-2").trim();
+		String AS_3 = inpDetails.get("AS-3").trim();
+		String AS_4 = inpDetails.get("AS-4").trim();
+		
+		homePage = new HomePage(this.appActionEngine);
+		try {		
+		//homePage.RefreshHomePageElements();
+		if (homePage.waitForPage()) {
+			reportStatus(true,"Successfully Logged in to Mobile Home Page","Home page"); 
+			homePage.fullViewHomeScreen();
+			res = homePage.clickHomeIcon("Search");
+			reportStatus(res,"Successfully Clicked On Search ICon On Mobile-HomePage ","failed to click on Search Icon On-Mobile HomePage");
+			searchPg = new SearchPage(this.appActionEngine);
+			
+			if(searchPg.waitForPage()) {
+				
+				  reportStatus(true,"verified Successfully-The Search / Pro-Locate page loads in barcode mode automatically with the cursor flashing in the search box ","Search Page"); 
+				  attachScreenshot(Status.INFO, "info");
+				  res= searchPg.SearchAsset(AS_1);
+				  reportStatus(res,"Search operation done successfully ","Search operation fail ");
+				  
+				  res= searchPg.VerifySearchResult();
+				  reportStatus(res,"Search result verification Completed successfully ","Search reasult verification failed ");
+				  attachScreenshot(Status.INFO, "Search Reasults-Referance");
+				  //
+				  searchPg.clickOnBackButton();
+				  homePage.fullViewHomeScreen();
+				  res = homePage.clickHomeIcon("Search");
+		
+				  res= searchPg.SearchAsset(AS_2);
+				  reportStatus(res,"Search operation done successfully ","Search operation fail ");
+	              // pd- Count need to verify
+				  reportStatus(res,"Successfully verified GDF Assets Displayed successfully","Fail to verify GDF Assets ");
+				  attachScreenshot(Status.INFO, "Search Reasults-Referance");
+					
+				  //
+				  searchPg.clickOnBackButton();
+				  homePage.fullViewHomeScreen();
+				  res = homePage.clickHomeIcon("Search");
+				  
+				  res= searchPg.SearchAsset(AS_3);
+				  reportStatus(res,"Search operation done successfully ","Search operation fail ");
+				  reportStatus(res,"GDF-Applied Successfully.No Asset Found "+AS_3,"GDF Filed-Assets displayed "+AS_3);
+				  attachScreenshot(Status.INFO, "Search Reasults-Referance");
+				  //
+				  searchPg.clickOnBackButton();
+				  homePage.fullViewHomeScreen();
+				  res = homePage.clickHomeIcon("Search");
+				  
+				  res= searchPg.SearchAsset(AS_4);
+				  reportStatus(res,"Search operation done successfully ","Search operation fail ");
+				  reportStatus(res,"GDF-Applied Successfully.No Asset Found "+AS_4,"GDF Filed-Assets displayed "+AS_4);
+				  attachScreenshot(Status.INFO, "Search Reasults-Referance");
+
+				  }else {
+					  reportStatus(false,"Search page ","unable to navigate to search screen");
+				  }
+				 	
+				res = searchPg.clickOnBackButton();
+				reportStatus(res,"Successfull Navigated to Home Page..","Failed to Navigate home page");
+			}
+		} catch (Exception e) {
+			reportStatus(false,"TS01_GLBFilters..Fail to initiate","TS01_GLBFilters");
+		e.printStackTrace();
+	}
+}
+	
+	
+	 // Phase-3 : Verify Locations As Applied GDf
+		@Test(dataProvider="GLBFilters", dataProviderClass = GloblaDataFiltersMobileTests.class)
+		public void TS02_GLBFilters(HashMap<String, String> inpDetails,ITestContext testContext) throws Throwable {
+			boolean res = false;	
+			// Read Test Data 
+			String Location = inpDetails.get("Location-1").trim();
+			String[] Locations = Location.split(";");
+			String strItemID = inpDetails.get("AS-1").trim();
+			
+			homePage = new HomePage(this.appActionEngine);
+			Assignpg = new AssignPage(this.appActionEngine);
+			searchPg = new SearchPage(this.appActionEngine);
+			try {		
+			//homePage.RefreshHomePageElements();
+			if (homePage.waitForPage()) {
+				reportStatus(true,"Successfully Logged in to Mobile Home Page","Home page"); 
+				
+				
+				//******************  Inventory Screen ******************
+				res = homePage.clickHomeIcon("Inventory");
+				reportStatus(res,"Successfully Clicked On Inventory ICon On Mobile-HomePage ","failed to click on Inventory Icon On-Mobile HomePage");
+				InventoryPg = new InventoryPage(this.appActionEngine);
+				if(InventoryPg.waitForPage()) {
+					  reportStatus(true,"verified Successfully Loaded Inventory Screen ","Inventory Screen "); 
+					  attachScreenshot(Status.INFO, "info");
+					  //Click On Location Tree Icon 
+					  res = Assignpg.ClickOnSearchIconAssignee("Location");
+					  reportStatus(res,"successfully clicked Location tree icon","failed to click location tree icon");
+					  res= Assignpg.LocationTreeExpand(Locations);
+					  reportStatus(res,"successfully expanded all locations and hierarchy as per uc web","failed to expand Location tree");
+					  attachScreenshot(Status.INFO, "Screen");
+					  Assignpg.clickElement("CANCEL");
+					  reportStatus(res,"successfully closed Location tree","failed to close location tree");
+					  // Back to Home Screen
+					  res = searchPg.clickOnBackButton();
+					  reportStatus(res,"Successfull Navigated to Home Page..","Failed to Navigate home page");
+					  this.appActionEngine.driver.switchTo().alert().accept();
+					  reportStatus(homePage.waitForPage(),"successfully home screen ","Fail to navigate to home screen");
+					  attachScreenshot(Status.INFO, "Screen");
+				}else {
+						  reportStatus(false,"Inventory ","Fail to load Inventory screen");
+					  }
+	
+				// ***************** Check -Out Screen *********************
+				homePage.fullViewHomeScreen();
+				res = homePage.clickHomeIcon("Check-Out");
+				reportStatus(res,"Successfully Clicked On Check-Out ICon On Mobile-HomePage ","failed to click on Check-Out Icon On-Mobile HomePage");
+				checkOutPg = new CheckOutPage(this.appActionEngine);
+				if(checkOutPg.waitForPage()) {
+					  reportStatus(true,"verified Successfully Loaded Check-Out Screen ","Check-Out Screen "); 
+					  attachScreenshot(Status.INFO, "info");
+					  //Click On Location Tree Icon 
+					  res = Assignpg.ClickOnSearchIconAssignee("Location");
+					  reportStatus(res,"successfully clicked Location tree icon","failed to click location tree icon");
+					  res= Assignpg.LocationTreeExpand(Locations);
+					  reportStatus(res,"successfully expanded all locations and hierarchy as per uc web","failed to expand Location tree");
+					  attachScreenshot(Status.INFO, "Screen");
+					  Assignpg.clickElement("CANCEL");
+					  reportStatus(res,"successfully closed Location tree","failed to close location tree");
+					  // Back to Home Screen
+					  res = searchPg.clickOnBackButton();
+					  Thread.sleep(3000);
+					  this.appActionEngine.driver.switchTo().alert().accept();
+					  reportStatus(res,"Successfull Navigated to Home Page..","Failed to Navigate home page");
+					  attachScreenshot(Status.INFO, "Screen");
+				}else {
+						  reportStatus(false,"Inventory ","Fail to load Check-Out screen");
+					  }
+				
+				// *******************Check -In Screen*************8
+				homePage.fullViewHomeScreen();
+				res = homePage.clickHomeIcon("Check-In");
+				reportStatus(res,"Successfully Clicked On Check-In ICon On Mobile-HomePage ","failed to click on Check-In Icon On-Mobile HomePage");
+				checkInPg = new CheckInPage(this.appActionEngine);
+				if(checkInPg.waitForPage()) {
+					  reportStatus(true,"verified Successfully Loaded Check-In Screen ","Check-In Screen "); 
+					  attachScreenshot(Status.INFO, "info");
+					  //Click On Location Tree Icon 
+					  res = Assignpg.ClickOnSearchIconAssignee("Location");
+					  reportStatus(res,"successfully clicked Location tree icon","failed to click location tree icon");
+					  res= Assignpg.LocationTreeExpand(Locations);
+					  reportStatus(res,"successfully expanded all locations and hierarchy as per uc web","failed to expand Location tree");
+					  attachScreenshot(Status.INFO, "Screen");
+					  Assignpg.clickElement("CANCEL");
+					  reportStatus(res,"successfully closed Location tree","failed to close location tree");
+					  // Back to Home Screen
+					  res = searchPg.clickOnBackButton();
+					  Thread.sleep(3000);
+					  this.appActionEngine.driver.switchTo().alert().accept();
+					  reportStatus(res,"Successfull Navigated to Home Page..","Failed to Navigate home page");
+					  attachScreenshot(Status.INFO, "Screen");
+				}else {
+						  reportStatus(false,"Inventory ","Fail to load Check-In screen");
+					  }
+				
+			   /// ********** Assign Screen ****************
+				homePage.fullViewHomeScreen();
+				res = homePage.clickHomeIcon("Assign");
+				reportStatus(res,"Successfully Clicked On Assign ICon On Mobile-HomePage ","failed to click on Assign Icon On-Mobile HomePage");
+				Assignpg = new AssignPage(this.appActionEngine);
+				if(Assignpg.waitForPage()) {
+					  reportStatus(true,"verified Successfully- Loaded Assign screen ","Assign Screen"); 
+					  attachScreenshot(Status.INFO, "info");
+					  //Click On Location Tree Icon 
+					  res = Assignpg.ClickOnSearchIconAssignee("Location");
+					  reportStatus(res,"successfully clicked Location tree icon","failed to click location tree icon");
+					  res= Assignpg.LocationTreeExpand(Locations);
+					  reportStatus(res,"successfully expanded all locations and hierarchy as per uc web","failed to expand Location tree");
+					  attachScreenshot(Status.INFO, "Screen");
+					  Assignpg.clickElement("CANCEL");
+					  reportStatus(res,"successfully closed Location tree","failed to close location tree");
+					  // Back to Home Screen
+					  res = searchPg.clickOnBackButton();
+					  Thread.sleep(3000);
+					  this.appActionEngine.driver.switchTo().alert().accept();
+					  reportStatus(res,"Successfull Navigated to Home Page..","Failed to Navigate home page");
+					  attachScreenshot(Status.INFO, "Screen");
+				}else {
+						  reportStatus(false,"Search page ","unable to navigate to Assign screen");
+					  }
+				
+				// *******************Create Asset*************
+				homePage.fullViewHomeScreen();
+				res = homePage.clickHomeIcon("Create Asset");
+				reportStatus(res,"Successfully Clicked On Create Asset ICon On Mobile-HomePage ","failed to click on Create Asset Icon On-Mobile HomePage");
+				createAssetPg = new CreateAssetPage(this.appActionEngine);
+				if(createAssetPg.waitForPage()) {
+					  reportStatus(true,"verified Successfully Loaded Create Asset Screen ","Create Asset Screen "); 
+					  attachScreenshot(Status.INFO, "info");
+					  //Click On Location Tree Icon 
+					  
+					  res = Assignpg.ClickOnSearchIconAssignee("Location");
+					  reportStatus(res,"successfully clicked Location tree icon","failed to click location tree icon");
+					  res= Assignpg.LocationTreeExpand(Locations);
+					  reportStatus(res,"successfully expanded all locations and hierarchy as per uc web","failed to expand Location tree");
+					  attachScreenshot(Status.INFO, "Screen");
+					  Assignpg.clickElement("CANCEL");
+					  reportStatus(res,"successfully closed Location tree","failed to close location tree");
+					  // Back to Home Screen
+					  res = searchPg.clickOnBackButton();
+					  Thread.sleep(3000);
+					  this.appActionEngine.driver.switchTo().alert().accept();
+	
+					  reportStatus(res,"Successfull Navigated to Home Page..","Failed to Navigate home page");
+					  attachScreenshot(Status.INFO, "Screen");
+				}else {
+						  reportStatus(false,"Inventory ","Fail to load Create Asset screen");
+					  }
+				
+				// ******************  Edit Asset ***********************
+				 res = this.appActionEngine.ScroolElementVisible("com.a2b.rfid.rfidandroid:id/homeRecyclerView","Inventory");
+				res = homePage.clickHomeIcon("Search");
+				reportStatus(res,"Successfully Clicked On Search ICon On Mobile-HomePage ","failed to click on Search Icon On-Mobile HomePage");
+				searchPg = new SearchPage(this.appActionEngine);
+				
+				if (searchPg.waitForPage()) {
+					reportStatus(true,"verified Successfully-The Search / Pro-Locate page loads in barcode mode automatically with the cursor flashing in the search box ","Search Page"); 
+					res= searchPg.SearchAsset(strItemID);
+					reportStatus(res,"Search operation done successfully for- "+strItemID,"Search operation fail- "+strItemID);
+					
+					//******* verify Asset Detail - Verification********
+					if (searchPg.fullViewAssetDetailPage()) {
+						reportStatus(true,"Asset Details screen loaded Successfully ","Asset Detal Page ");
+						  searchPg.AssetDetals("ItemID", strItemID);
+						  // Edit Asset
+						  res = searchPg.clickEditAsset();
+						  reportStatus(res,"Successfully Clicked on Edit Asset","Fail to Click Edit Asset link");
+						  Thread.sleep(2000);
+						  reportStatus(res,"Successfully loaded  Edit Asset screen","Fail to Edit Asset screen");
+						  attachScreenshot(Status.INFO, "info");
+						  
+						   // Verify Location
+						  res = Assignpg.ClickOnSearchIconAssignee("Location");
+						  reportStatus(res,"successfully clicked Location tree icon","failed to click location tree icon");
+						  res= Assignpg.LocationTreeExpand(Locations);
+						  reportStatus(res,"successfully expanded all locations and hierarchy as per uc web","failed to expand Location tree");
+						  attachScreenshot(Status.INFO, "Screen");
+						  Assignpg.clickElement("CANCEL");
+						  reportStatus(res,"successfully closed Location tree","failed to close location tree");
+						  // Back to Home Screen
+						  res = searchPg.clickOnBackButton();
+						  res = searchPg.clickOnBackButton();
+						  reportStatus(res,"Successfull Navigated to Home Page..","Failed to Navigate home page");
+						  attachScreenshot(Status.INFO, "Screen");
+			
+					}else {
+						reportStatus(false,"Asset Detail ","Asset Detail screen dosent loaded");
+					}
+				}else {
+					reportStatus(false,"Search page ","Search Sceen dosent loaded");
+				}
+				
+				// ****************** Create group Screen ************
+				
+				homePage.fullViewHomeScreen();
+				res = homePage.clickHomeIcon("Grouping");
+				reportStatus(res,"Successfully Clicked On Groupins ICon On Mobile-Home Screen ","failed to click on Groupings Icon On-Mobile HomePage");
+				createAssetPg = new CreateAssetPage(this.appActionEngine);
+				Assignpg = new AssignPage(this.appActionEngine);
+				groupingsPg = new GroupingsPage(this.appActionEngine);
+				if (groupingsPg.waitForPage()) {
+					reportStatus(true,"The Groupings page loaded with no Groupings present  ","The Groupings page loaded with existing  Groupings present ");
+					res= this.appActionEngine.click(homePage.GetElementBasedOnText( "ADD GROUPING"));
+					reportStatus(res,"successfully clicked Add Grouping Icon ","Fail to click Add Grouping Icon");
+
+					 // Verify Location
+					  res = Assignpg.ClickOnSearchIconAssignee("Location");
+					  reportStatus(res,"successfully clicked Location tree icon","failed to click location tree icon");
+					  res= Assignpg.LocationTreeExpand(Locations);
+					  reportStatus(res,"successfully expanded all locations and hierarchy as per uc web","failed to expand Location tree");
+					  attachScreenshot(Status.INFO, "Screen");
+					  Assignpg.clickElement("CANCEL");
+					  reportStatus(res,"successfully closed Location tree","failed to close location tree");
+					  // Back to Home Screen
+					  res = searchPg.clickOnBackButton();
+					  Thread.sleep(3000);
+					  this.appActionEngine.driver.switchTo().alert().accept();
+					  
+					  // Edit Group Screen
+					    Thread.sleep(3000);
+					     res= groupingsPg.clickOnThreeDots();
+						 reportStatus(res,"There are three dots near the My Trunk grouping "," No Dots exist near Grouping");
+						 reportStatus(res,"Successfully click on Three Dots Icon "," Fail to click near three dots icon");
+						 
+						 // Verify 3 Dots contain Functionality
+						 res= this.appActionEngine.click(homePage.GetElementBasedOnText( "EDIT"));
+						 reportStatus(res,"Successfully clicked on Edit Icon ","fail to click Edit icon ");
+						
+						 // Verify Location
+						  res = Assignpg.ClickOnSearchIconAssignee("Location");
+						  reportStatus(res,"successfully clicked Location tree icon","failed to click location tree icon");
+						  res= Assignpg.LocationTreeExpand(Locations);
+						  reportStatus(res,"successfully expanded all locations and hierarchy as per uc web","failed to expand Location tree");
+						  attachScreenshot(Status.INFO, "Screen");
+						  Assignpg.clickElement("CANCEL");
+						  reportStatus(res,"successfully closed Location tree","failed to close location tree");
+						  // Back to Home Screen
+						  res = searchPg.clickOnBackButton();
+						  Thread.sleep(3000);
+						  this.appActionEngine.driver.switchTo().alert().accept();
+					      res = searchPg.clickOnBackButton();
+					      reportStatus(homePage.waitForPage(),"successfully home screen ","Fail to navigate to home screen");
+									
+				  }else {
+					  reportStatus(false,"Groupings Screen ","Groupings Screen Unable to load");
+				  }		
+				}
+			} catch (Exception e) {
+				reportStatus(false,"TS02_GLBFilters..Fail to initiate","TS02_GLBFilters Fail to initiate");
+			e.printStackTrace();
+		}
+	}
+
+	
+	
+
+}

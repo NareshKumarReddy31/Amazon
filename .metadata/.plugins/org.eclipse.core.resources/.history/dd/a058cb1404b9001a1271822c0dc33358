@@ -1,0 +1,281 @@
+package a2b.mobile.android.pages;
+
+import java.awt.Dimension;
+import java.awt.Robot;
+import java.awt.event.KeyEvent;
+import java.util.HashMap;
+import java.util.List;
+
+import org.openqa.selenium.By;
+
+import org.openqa.selenium.JavascriptExecutor;
+import org.openqa.selenium.WebElement;
+import org.openqa.selenium.interactions.Actions;
+import org.openqa.selenium.interactions.touch.TouchActions;
+import org.openqa.selenium.remote.RemoteWebElement;
+import org.openqa.selenium.support.PageFactory;
+
+import a2b.core.logs.LogManager;
+import amazon.config.gblConstants;
+import amazon.core.accelerators.AppiumActionEngine;
+import amazon.core.accelerators.AppiumActionEngine.DIRECTION;
+import amazon.mobile.android.engine.A2BMobileActionEngine;
+import amazon.mobile.android.engine.A2BMobileTestEngine;
+import io.appium.java_client.MobileBy;
+import io.appium.java_client.MobileElement;
+import io.appium.java_client.TouchAction;
+import io.appium.java_client.pagefactory.AndroidFindBy;
+import io.appium.java_client.pagefactory.AppiumFieldDecorator;
+import io.appium.java_client.touch.TapOptions;
+import io.appium.java_client.touch.offset.PointOption;
+
+public class CreateAssetPage extends A2BMobileTestEngine{
+	private A2BMobileActionEngine appEngine = null;
+	
+	
+	
+	public final String eleEditAsset = "xpath=//android.widget.EditText[contains(@resource-id,'"+ gblConstants.replaceText+"')]";
+	
+	
+	public final String eleUserFields = "xpath=//*[@text='"+ gblConstants.replaceText+"']";
+	
+	 @AndroidFindBy(id = "com.a2b.rfid.rfidandroid:id/itemIdEditText")
+		private WebElement itemId;
+	 
+	 @AndroidFindBy(id = "com.a2b.rfid.rfidandroid:id/itemNameEditText")
+		private WebElement itemName;
+	 
+	 @AndroidFindBy(id = "com.a2b.rfid.rfidandroid:id/assetClassEditText")
+		private WebElement assetClass;
+	 
+	 @AndroidFindBy(id = "com.a2b.rfid.rfidandroid:id/serialNumberEditText")
+		private WebElement serialNumber;
+	 
+	 @AndroidFindBy(id = "com.a2b.rfid.rfidandroid:id/rfidEditText")
+		private WebElement rfidEditText;
+	
+
+		
+	 
+	 @AndroidFindBy(id = "com.a2b.rfid.rfidandroid:id/editTextAssignee")
+		private WebElement assignee;
+		
+	 
+	 @AndroidFindBy(id = "com.a2b.rfid.rfidandroid:id/editTextLocation")
+		private WebElement location;
+	 
+	 @AndroidFindBy(id = "com.a2b.rfid.rfidandroid:id/createAssetsButton")
+		private WebElement createAssetBtn;
+	 
+	 @AndroidFindBy(id = "com.a2b.rfid.rfidandroid:id/createAndNewAssetsButton")
+		private WebElement createAndNewAssetBtn;
+	 
+	 
+		
+	 
+	 @AndroidFindBy(xpath = "//*[@text='Order Number']")
+		private WebElement orderNumber;
+	 @AndroidFindBy(xpath = "//*[@text='Item Number']")
+		private WebElement itemNum;
+	 @AndroidFindBy(xpath = "//*[@text='Service Order']")
+		private WebElement serviceOrder;
+	 
+	 
+	 
+	
+	//*************************************************************************************
+
+	
+	
+		public CreateAssetPage(A2BMobileActionEngine actEng) {
+			appEngine = actEng;
+			PageFactory.initElements(new AppiumFieldDecorator(appEngine.getDriver()),this);
+			 //actEng.loadPage();
+		}
+		
+	
+		public boolean waitForPage() {
+			boolean res = false;
+			try {
+				res = this.appEngine.waitForElementVisibles(itemId, gblConstants.pageLoadTimeout * 2);
+			} catch (Exception e) {
+				LogManager.logError(LoginPage.class.getName(), "Failed to load the Create Asset Screen..");
+			}
+			return res;
+		}
+		
+		public void enterRFID(String RFID) {
+			boolean res= false;
+			try {
+				this.appEngine.click(rfidEditText);
+				res= this.appEngine.enterTxt(rfidEditText, RFID);
+			  	reportStatus(res,"Successfully Entered RFID- "+RFID,"Unable Enter RFID- "+RFID); 
+		  
+			}catch (Exception e) {
+				 LogManager.logInfo(HomePage.class.getName(), "Failed enterRFID method");	
+			}
+		}
+		
+		
+		
+		public void enterItemId(String ItemID) {
+			boolean res= false;
+			try {
+				res= this.appEngine.enterTxt(itemId, ItemID);
+			  	reportStatus(res,"Successfully Entered Item Id- "+ItemID,"Unable Enter Item ID- "+ItemID); 
+		  
+			}catch (Exception e) {
+				 LogManager.logInfo(HomePage.class.getName(), "Failed enterItemId method");	
+			}
+		}
+		
+		
+		public void EnterSerialNumber(String SerialNumber) {
+			boolean res= false;
+			try {
+				this.appEngine.click(serialNumber);
+				res= this.appEngine.enterTxt(serialNumber, SerialNumber);
+			  	reportStatus(res,"Successfully Entered AssetClass- "+SerialNumber,"Unable Enter SerialNumber- "+SerialNumber); 
+			}catch (Exception e) {
+				 LogManager.logInfo(HomePage.class.getName(), "Failed EnterSerialNumber method");	
+			}
+			
+		}
+		
+		public void EnterLocation(String Location) {
+			boolean res= false;
+			try {
+				res= this.appEngine.enterTxt(location, Location);
+			  	reportStatus(res,"Successfully Entered Location- "+Location,"Unable Enter Location- "+Location); 
+			  	presskeyDownAndEnter();
+			}catch (Exception e) {
+				 LogManager.logInfo(HomePage.class.getName(), "Failed EnterLocation method");	
+			}
+		}
+	
+		
+		
+		
+		public void EnterCustodian(String custodian) {
+			boolean res= false;
+			try {
+				res= this.appEngine.enterTxt(assignee, custodian);
+			  	reportStatus(res,"Successfully Entered custodian- "+custodian,"Unable Enter custodian- "+custodian); 
+			  	presskeyDownAndEnter();
+			
+			}catch (Exception e) {
+				 LogManager.logInfo(HomePage.class.getName(), "Failed EnterCustodian method");	
+			}
+			
+		}
+		
+		public void EnterAssetClass(String AssetClass) {
+			boolean res= false;
+			try {
+				res= this.appEngine.enterTxt(assetClass, AssetClass);
+			  	reportStatus(res,"Successfully Entered AssetClass- "+AssetClass,"Unable Enter AssetClass- "+AssetClass); 
+			  	presskeyDownAndEnter();
+			
+			}catch (Exception e) {
+				 LogManager.logInfo(HomePage.class.getName(), "Failed EnterAssetClass method");	
+			}
+			
+		}
+		
+		
+		
+		public void enterName(String Name) {
+			boolean res= false;
+			try {
+				res= this.appEngine.enterTxt(itemName, Name);
+			  	reportStatus(res,"Successfully Entered Name- "+Name,"Unable Enter Name- "+Name); 
+		  
+			}catch (Exception e) {
+				 LogManager.logInfo(HomePage.class.getName(), "Failed enterName method");	
+			}
+			
+		}
+
+		public boolean presskeyDownAndEnter() {
+			boolean res= false;
+			try {
+				Robot rb = new Robot();
+				rb.keyPress(KeyEvent.VK_DOWN);
+				rb.keyRelease(KeyEvent.VK_DOWN);
+				rb.keyPress(KeyEvent.VK_ENTER);
+				rb.keyRelease(KeyEvent.VK_ENTER);
+		  
+			}catch (Exception e) {
+				 LogManager.logInfo(HomePage.class.getName(), "Failed presskeyDownAndEnter method");	
+			}
+			return res;
+		}
+
+		
+		
+		
+		
+	
+		
+		
+		public void ClickOnCreateAsset(String btnName) {
+			boolean res= false;
+			try {
+				
+				if (btnName.equalsIgnoreCase("createandnew")) {
+					fullViewCreateAssetScreen();
+					res= this.appEngine.click(createAndNewAssetBtn);
+					
+					
+				}else {
+					fullViewCreateAssetScreen();
+					res= this.appEngine.click(createAssetBtn);
+				}
+				
+				reportStatus(res,"Successfully Clicked On  Button- "+btnName,"Unable to click  button "+btnName); 
+			}catch (Exception e) {
+				 LogManager.logInfo(HomePage.class.getName(), "exceptions in ClickOnCreateAsset method");	
+			}
+			
+		}
+		
+		public boolean EnterUserFields(String eleText,String value,boolean autoSelect) throws Throwable {
+			boolean res= false;
+			try {
+				String ele= eleUserFields .replace(gblConstants.replaceText, eleText);
+				res = this.appEngine.enterTxt(this.appEngine.getElement(ele), value);
+				reportStatus(res,"Successfully Entered - "+eleText+"-Value:-"+ value,"Fail to Enter"+eleText+"-Value:-"+ value); 
+			
+				if (autoSelect) {
+					presskeyDownAndEnter();
+				}
+			}catch (Exception e) {
+				 LogManager.logInfo(HomePage.class.getName(), "Failed to EnterUserFields Method");	
+			}
+			return res;
+		}
+		
+		public boolean fullViewCreateAssetScreen() {
+			boolean res= false;
+			try {	
+				  
+			  	 Thread.sleep(5000);
+			  	 this.appEngine.hideKeyboard();
+				 res = this.appEngine.ScroolElementVisible("com.a2b.rfid.rfidandroid:id/action_bar_root","CREATE");
+		  
+			}catch (Exception e) {
+				 LogManager.logInfo(HomePage.class.getName(), "Failed fullViewCreateAssetScreen");	
+			}
+			return res;
+		}
+
+		
+
+
+
+		
+		
+		
+		
+	
+	}

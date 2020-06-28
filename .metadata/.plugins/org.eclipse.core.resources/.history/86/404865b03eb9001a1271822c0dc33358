@@ -1,0 +1,166 @@
+package amazon.mobile.android.pages;
+
+import io.appium.java_client.android.Activity;
+import io.appium.java_client.pagefactory.AndroidFindBy;
+import io.appium.java_client.pagefactory.AppiumFieldDecorator;
+
+import java.util.List;
+
+import org.openqa.selenium.WebElement;
+import org.openqa.selenium.interactions.Actions;
+import org.openqa.selenium.support.PageFactory;
+import amazon.config.gblConstants;
+import amazon.core.logs.LogManager;
+import amazon.mobile.android.engine.AmazonMobileActionEngine;
+import amazon.mobile.android.engine.AmazonMobileTestEngine;
+
+public class AmazonAppScreens extends AmazonMobileTestEngine{
+
+	
+	private AmazonMobileActionEngine appEngine = null;
+	
+
+//***************************** Start Locators ********************************************************************************	
+
+	@AndroidFindBy(id = "com.amazon.mShop.android.shopping:id/sign_in_button")
+	private WebElement signin;
+	@AndroidFindBy(id = "ap_email_login")
+	private WebElement userName_box;
+	@AndroidFindBy(xpath = "//*[@text='Continue']")
+	@AndroidFindBy(xpath = "//*[@text='Welcome']")
+	private WebElement welcome;
+	private WebElement btnContinue;
+	@AndroidFindBy(id = "ap_password")
+	private WebElement passWord_box;
+	@AndroidFindBy(id = "signInSubmit")
+	private WebElement btnLogin;
+	@AndroidFindBy(id = "com.amazon.mShop.android.shopping:id/rs_search_src_text")
+	private WebElement searchBox;
+	@AndroidFindBy(id = "com.amazon.mShop.android.shopping:id/iss_search_dropdown_item_text")
+	private WebElement searchedResults;
+	
+//****************************** End Locators *********************************************************************************
+
+	public AmazonAppScreens(AmazonMobileActionEngine actEng) {
+		appEngine = actEng;
+
+		// Page Factory for accessing elements
+		PageFactory.initElements(new AppiumFieldDecorator(appEngine.getDriver()), this);
+
+	}
+
+	public boolean waitForLoginSelectionScreen() {
+		boolean res = false;
+		try {
+			res = this.appEngine.waitForElementVisibles(signin, gblConstants.pageLoadTimeout * 2);
+		} catch (Exception e) {
+			LogManager.logError(AmazonAppScreens.class.getName(), "Fail to Load Home Screen ");
+		}
+		return res;
+	}
+	
+	public boolean waitForLoginscreen() {
+		boolean res = false;
+		try {
+			res = this.appEngine.waitForElementVisibles(userName_box, gblConstants.pageLoadTimeout * 2);
+		} catch (Exception e) {
+			LogManager.logError(AmazonAppScreens.class.getName(), "Fail to navigate to sign in page ");
+		}
+		return res;
+	}
+	
+	public boolean waitForHomePage() {
+		boolean res = false;
+		try {
+			res = this.appEngine.waitForElementVisibles(searchBox, gblConstants.pageLoadTimeout * 2);
+		} catch (Exception e) {
+			LogManager.logError(AmazonAppScreens.class.getName(), "Fail to navigate to sign in page ");
+		}
+		return res;
+	}
+
+	/**
+	 * @Purpose To Login To Amazon APP
+	 * @Constraints
+	 * @Input String String userid, String password
+	 * @Output boolean : If Login successfully return TRUE, else FALSE
+	 * @Author-Naresh Gorla 
+	 */
+	public boolean LoginAmazonApp(String userid, String password) throws Throwable {
+		boolean res = false;
+		try {
+			if (waitForHomePage()) {
+				//reportStatus(true,"Successfully Loaded Home Page-Amazon - Login detals Saved in device Already","Home page");
+				LogManager.logInfo(AmazonAppScreens.class.getName(), "uccessfully Loaded Home Page-Amazon - Login detals Saved in device Already " + userid);
+				res = false ;
+			}
+			else if (waitForLoginSelectionScreen()){
+				this.appEngine.click(signin);
+				res = this.appEngine.enterTxt(userName_box, userid);
+				//reportStatus(res,"Successfully Entered UserName- "+userid,"Fail to Enter UserName- "+userid);
+				this.appEngine.click(btnContinue);
+				res = this.appEngine.enterTxt(passWord_box, password);
+				//reportStatus(res,"Successfully Entered PassWord- "+password,"Fail to Enter PassWord- "+password);
+				res = this.appEngine.click(btnLogin);
+				//reportStatus(res,"Successfully Loaded Home Page-Amazon","Home page");
+			}
+			
+		} catch (Exception e) {
+			LogManager.logError(AmazonAppScreens.class.getName(), "Failed to Log in to Amazon with User- " + userid);
+		}
+		return res;
+	}
+
+	
+	public boolean searchProduct(String productName) {
+		boolean res = false ;
+		try {
+			this.appEngine.enterTxt(searchBox, productName);
+		} catch (Exception e) {
+			LogManager.logError(AmazonAppScreens.class.getName(), "Fail to searchProduct ");
+		}
+		return res;
+	}
+	
+	
+	public boolean selectSearchedResults(String text) throws Throwable {
+		boolean res = false;
+		try {
+			// get List of elements
+			List<WebElement> ele = (List<WebElement>) searchedResults ;
+			// Loop it from first to last
+			for (int i = 0 ; i <ele.size();i++) {
+				//get the Each element text
+				String resulName= ele.get(i).getText();
+				if(resulName.equals(text)) {
+					ele.get(i).click();
+				}
+			}
+			
+		} catch (Exception e) {
+			LogManager.logError(AmazonAppScreens.class.getName(), "Failed to select Searched result " + text);
+		}
+		return res;
+	}
+
+	
+	
+	
+	public String readOTP() throws Throwable {
+		boolean res = false;
+		String otp = "" ;
+		try {
+			Activity activity = new Activity("com.android.mms", "com.android.mms.ui.ConversationList");
+			activity.setAppWaitPackage("com.android.mms");
+			activity.setAppWaitActivity("com.android.mms.ui.ConversationList");
+			// this.appEngine.driver.startActivity(activity);
+			 otp = this.appEngine.driver.findElementByXPath("//*[contains(@text,'is')]").getText().split("code:" )[0];
+		} catch (Exception e) {
+			LogManager.logError(AmazonAppScreens.class.getName(), "Failed to get otp" );
+		}
+		return otp;
+	}
+	
+
+
+}

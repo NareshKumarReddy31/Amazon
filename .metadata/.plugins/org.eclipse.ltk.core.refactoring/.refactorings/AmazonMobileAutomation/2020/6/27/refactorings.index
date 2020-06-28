@@ -1,0 +1,44 @@
+1593323483255	Rename package 'a2b.config'
+1593323534098	Rename package 'a2b.core.accelerators'
+1593323542255	Delete element
+1593323551784	Delete element
+1593323568640	Delete element
+1593323595194	Rename package 'a2b.mobile.android.engine'
+1593323640515	Delete elements
+1593323730228	Delete element
+1593323746906	Delete elements
+1593323776957	Delete elements
+1593323848610	Delete elements
+1593324063584	Delete element
+1593324166628	Delete elements
+1593324187753	Delete element
+1593324201393	Delete element
+1593324205487	Delete element
+1593324222207	Delete element
+1593324298011	Delete element
+1593324334169	Delete elements
+1593324774909	Rename package 'a2b.core.fileutils'
+1593324791095	Rename package 'a2b.core.listeners'
+1593324809091	Rename package 'a2b.core.logs'
+1593324818685	Rename package 'a2b.core.reports'
+1593324829143	Rename package 'a2b.mobile.android.pages'
+1593324853601	Rename type 'A2BMobileActionEngine'
+1593324930597	Delete element
+1593324944319	Delete element
+1593325165848	Delete element
+1593325262469	Delete element
+1593325292278	Rename type 'A2BMobileTestEngine'
+1593325312727	Delete element
+1593325721453	Delete element
+1593325999365	Delete element
+1593326246583	Delete element
+1593326846272	Delete element
+1593327099104	Copy compilation units
+1593327106791	Delete element
+1593328108263	Delete element
+1593329029364	Rename package 'a2b.mobile.Phase_5'
+1593329057248	Rename type 'CreateAssetTests'
+1593329510166	Rename resource 'Phase_5.xml'
+1593329555996	Rename resource 'A2B_Mobile_BatchTests.xml'
+1593334019728	Rename type 'LoginPage'
+1593374015208	Delete element

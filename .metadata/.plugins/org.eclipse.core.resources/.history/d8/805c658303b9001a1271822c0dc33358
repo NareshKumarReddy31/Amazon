@@ -1,0 +1,630 @@
+package a2b.mobile.android.pages;
+
+ 
+
+
+import java.time.Duration;
+import java.util.HashMap;
+import java.util.List;
+import java.util.NoSuchElementException;
+import java.util.concurrent.TimeUnit;
+
+import org.openqa.selenium.Alert;
+import org.openqa.selenium.By;
+import org.openqa.selenium.Dimension;
+import org.openqa.selenium.JavascriptExecutor;
+import org.openqa.selenium.WebElement;
+import org.openqa.selenium.remote.RemoteWebElement;
+import org.openqa.selenium.support.PageFactory;
+import org.openqa.selenium.support.ui.ExpectedConditions;
+import org.openqa.selenium.support.ui.Wait;
+import org.openqa.selenium.support.ui.WebDriverWait;
+
+import a2b.mobile.android.engine.A2BMobileActionEngine;
+import a2b.mobile.android.engine.A2BMobileTestEngine;
+import amazon.config.gblConstants;
+import a2b.core.logs.LogManager;
+import a2b.core.accelerators.AppiumActionEngine;
+import a2b.core.accelerators.AppiumActionEngine.DIRECTION;
+import io.appium.java_client.AppiumDriver;
+import io.appium.java_client.MobileDriver;
+import io.appium.java_client.MobileElement;
+import io.appium.java_client.TouchAction;
+import io.appium.java_client.android.AndroidDriver;
+import io.appium.java_client.android.AndroidElement;
+import io.appium.java_client.pagefactory.AndroidFindBy;
+import io.appium.java_client.pagefactory.AppiumFieldDecorator;
+import io.appium.java_client.touch.LongPressOptions;
+import io.appium.java_client.touch.offset.ElementOption;
+import io.appium.java_client.touch.offset.PointOption;
+
+
+public class HomePage extends A2BMobileTestEngine{
+	
+	private A2BMobileActionEngine appEngine = null;
+	 
+	//*****Home Page Toggle Elements ****************************
+	
+	
+	 //public final String eleToggleHome = "xpath=//android.widget.CheckedTextView[@text='"+ gblConstants.replaceText+"']";
+	 
+	 public final String eleToggleHome = "xpath=//android.widget.CheckedTextView[contains(@text,'"+ gblConstants.replaceText+"')]";
+	 
+	 public final String eleSettingsPage = "xpath=//android.widget.TextView[@text='"+ gblConstants.replaceText+"']";
+	
+	 public final String eleText = "xpath=//*[contains(@text,'"+ gblConstants.replaceText+"')]";
+	 public final String shortCutCheckBox = "xpath=//android.widget.TextView[contains(@text,'"+ gblConstants.replaceText+"')]/../android.widget.CheckBox ";
+	 
+	 //***************************************************************************************
+	 @AndroidFindBy(xpath = "//*[@text='Home']")
+	 private WebElement eleHome;
+	 
+	 @AndroidFindBy(xpath = "//*[@text='Settings']")
+	 private WebElement Setting;
+	 
+	 
+	 @AndroidFindBy(xpath = "//android.widget.CheckedTextView[@text='About']")
+	 private WebElement About;
+	 
+	 @AndroidFindBy(xpath = "//android.widget.CheckedTextView[@text='Logout']")
+	 private WebElement Logout;
+	 
+	 
+	 @AndroidFindBy(xpath = "//*[@text='Floor to Record Inventory']")
+	 private WebElement eleFloorToRecordInven;
+	 
+	 
+	 //******** Settings- Screen*********************
+	 
+	 @AndroidFindBy(id = "com.a2b.rfid.rfidandroid:id/powerLevel")
+	 private WebElement editBoxTransmitPower;
+	 
+	 @AndroidFindBy(id = "com.a2b.rfid.rfidandroid:id/sledBeeper")
+	 private WebElement sledBeeper;
+	 
+	 
+	 @AndroidFindBy(xpath = "com.a2b.rfid.rfidandroid:id/volumeSpinner")
+	 private WebElement volume;
+	 
+	 @AndroidFindBy(xpath = "//android.widget.Button[@text='SAVE']")
+	 private WebElement btnSave;
+	 
+	 	
+	//********************Home Screen Icons*********************
+
+	 @AndroidFindBy(id = "com.a2b.rfid.rfidandroid:id/ucweb")
+		private WebElement ucWeb_box;
+	 
+	 @AndroidFindBy(accessibility = "Open navigation drawer")
+		private WebElement toggleIcon;
+	 
+	 @AndroidFindBy(accessibility = "com.a2b.rfid.rfidandroid:id/editTextIDorSerial")
+		private WebElement search_box_Asset;
+	 
+
+	 @AndroidFindBy(id = "com.a2b.rfid.rfidandroid:id/badge")
+		public WebElement redDot;
+	 
+
+	 @AndroidFindBy(id = "com.a2b.rfid.rfidandroid:id/selectButton")
+	 private WebElement tabChange;
+	 
+	 @AndroidFindBy(id = "com.a2b.rfid.rfidandroid:id/select_dialog_listview")
+	 private WebElement readersListView;
+	 
+	 @AndroidFindBy(id = "android:id/button2")
+	 private WebElement btnCancle;
+	 
+	 @AndroidFindBy(id = "com.a2b.rfid.rfidandroid:id/defaultSection")
+		private WebElement readersDisplaySection;
+	 
+	 @AndroidFindBy(id = "com.a2b.rfid.rfidandroid:id/enableSwitchBox")
+		private WebElement enableReaderChkBox;
+	
+	//*************************************************************************************
+
+	
+	
+		public HomePage(A2BMobileActionEngine actEng) {
+			appEngine = actEng;
+			LogManager.logInfo(HomePage.class.getName(),"load home page start");
+			PageFactory.initElements(new AppiumFieldDecorator(appEngine.getDriver()),this);
+			 //actEng.loadPage();
+			LogManager.logInfo(HomePage.class.getName(),"load home page end");
+		}
+		
+		
+	public boolean waitForPage() throws Throwable {
+		boolean res= false;
+		try {			
+			res= this.appEngine.waitForElementVisibles(toggleIcon, gblConstants.pageLoadTimeout/10);
+			//res= this.appEngine.isElementPresent(toggleIcon, "Login button", false);	
+		}catch (Exception e) {
+			LogManager.logInfo(HomePage.class.getName(), "Failed Load Home Page"+e);
+		}
+		return res;
+	}
+	
+	
+public boolean WaitForPageText(String eleTexts) throws Throwable {
+	boolean res= false;
+	try {	
+		String ele= eleText .replace(gblConstants.replaceText, eleTexts);
+		res= this.appEngine.waitForElementVisibles(this.appEngine.getElement(ele), gblConstants.pageLoadTimeout/10);
+		//res= this.appEngine.isElementPresent(toggleIcon, "Login button", false);	
+	}catch (Exception e) {
+		LogManager.logInfo(HomePage.class.getName(), "Failed Load Home Page"+e);
+	}
+	return res;
+}
+
+public WebElement GetElementBasedOnText(String eleTexts) throws Throwable {
+	WebElement ele = null ; 
+	try {	
+		String xpath= eleText .replace(gblConstants.replaceText, eleTexts);
+		 ele =this.appEngine.getElement(xpath); 
+			
+	}catch (Exception e) {
+		LogManager.logInfo(HomePage.class.getName(), "Failed GetElementBasedOnText method"+e);
+	}
+	return ele;
+}
+
+
+public WebElement GetElementBasedOnText(String xpathToBeReplace,String eleText) throws Throwable {
+	WebElement ele = null ; 
+	try {	
+		String xpath= xpathToBeReplace .replace(gblConstants.replaceText, eleText);
+		 ele =this.appEngine.getElement(xpath); 
+			
+	}catch (Exception e) {
+		LogManager.logInfo(HomePage.class.getName(), "Failed GetElementBasedOnText method"+e);
+	}
+	return ele;
+}
+
+
+
+public boolean  verifySledBeeperStatus(boolean ExpectedStatus) throws Throwable {
+	boolean res = false ;  
+	try {	
+		String val = sledBeeper.getAttribute("checked");
+			if (ExpectedStatus == Boolean.parseBoolean(val)) {
+				res = true ;
+			}
+	}catch (Exception e) {
+		LogManager.logInfo(HomePage.class.getName(), "Failed verifySledBeeperStatus method"+e);
+	}
+	return res ;
+}
+
+public boolean  selectVolume(String VolumeStatus) throws Throwable {
+	boolean res = false ;  
+	try {	
+		
+		this.appEngine.click(volume);
+		Thread.sleep(2000);
+		
+		res= this.appEngine.click(GetElementBasedOnText(VolumeStatus));
+		
+	}catch (Exception e) {
+		LogManager.logInfo(HomePage.class.getName(), "Failed selectVolume method"+e);
+	}
+	return res ;
+}
+
+
+
+public boolean  HomePageShortCutsStatus(String Name , boolean ExpectedStatus) throws Throwable {
+	boolean res = false ;  
+	try {	
+		String val = GetElementBasedOnText(shortCutCheckBox,Name).getAttribute("checked");
+			if (ExpectedStatus == Boolean.parseBoolean(val)) {
+				res = true ;
+			}
+	}catch (Exception e) {
+		LogManager.logInfo(HomePage.class.getName(), "Failed HomePageShortCutsStatus method"+e);
+	}
+	return res ;
+}
+
+
+public boolean  HomePageShortCutsSetStatus(String Name , boolean ExpectedStatus) throws Throwable {
+	boolean res = false ;  
+	try {	
+		String val = GetElementBasedOnText(shortCutCheckBox,Name).getAttribute("checked");
+			if (ExpectedStatus == Boolean.parseBoolean(val)) {
+				res = true ;
+			}
+			else {
+				 GetElementBasedOnText(shortCutCheckBox,Name).click();
+			res =true ; 
+			}
+	}catch (Exception e) {
+		LogManager.logInfo(HomePage.class.getName(), "Failed HomePageShortCutsStatus method"+e);
+	}
+	return res ;
+}
+
+
+
+
+
+	public boolean fullViewHomeScreen() {
+		boolean res= false;
+		try {	
+			  
+		  	 Thread.sleep(5000);
+		  	 this.appEngine.hideKeyboard();
+			 res = this.appEngine.ScroolElementVisible("com.a2b.rfid.rfidandroid:id/homeRecyclerView","Assign Asst");
+	  
+		}catch (Exception e) {
+			 LogManager.logInfo(HomePage.class.getName(), "Failed fullViewHomeScreen method");	
+		}
+		return res;
+	}
+	
+	
+	public boolean TogguleFullScreen() {
+		boolean res= false;
+		try {	
+			  
+		  	 Thread.sleep(5000);
+		  	 this.appEngine.hideKeyboard();
+			 res = this.appEngine.ScroolElementVisible("com.a2b.rfid.rfidandroid:id/homeRecyclerView","About");
+	  
+		}catch (Exception e) {
+			 LogManager.logInfo(HomePage.class.getName(), "Failed fullViewHomeScreen method");	
+		}
+		return res;
+	}
+	
+	public boolean verifyRedDotExist() throws Throwable  {
+		boolean res= false;
+		try {			
+		res= this.appEngine.isElementPresent(redDot, "Red Dot Icon", true);
+		}catch (Exception e) {
+			LogManager.logInfo(HomePage.class.getName(), "Failed to verify Red Dot Icon on Home Page"+e);
+		}
+		return res;
+	}
+	
+	
+
+	
+	public boolean clcikHomePageToggleElements(String eleText) throws Throwable  {
+		boolean res= false;
+		try {	
+			TogguleFullScreen();
+			String ele= eleToggleHome .replace(gblConstants.replaceText, eleText);
+			
+			Thread.sleep(3000);
+			res= this.appEngine.waitForElementVisibles(this.appEngine.getElement(ele), gblConstants.pageLoadTimeout);
+			res= this.appEngine.click(this.appEngine.getElement(ele) );
+		}catch (Exception e) {
+			LogManager.logInfo(HomePage.class.getName(), "Failed to clcikHomePageToggleElements"+e);
+		}
+		return res;
+	}
+	
+	public boolean clcikOnSettingsPageElements(String eleText) throws Throwable  {
+		boolean res= false;
+		try {	
+			String ele= eleSettingsPage .replace(gblConstants.replaceText, eleText);
+			
+			Thread.sleep(3000);
+			res= this.appEngine.waitForElementVisibles(this.appEngine.getElement(ele), gblConstants.pageLoadTimeout*2);
+			res= this.appEngine.click(this.appEngine.getElement(ele) );
+		}catch (Exception e) {
+			LogManager.logInfo(HomePage.class.getName(), "Failed to clcikOnSettingsPageElements"+e);
+		}
+		return res;
+	}
+	
+	
+	public boolean clickOnBatteryIcon() throws Throwable  {
+		boolean res= false;
+		try {	
+		
+			res= this.appEngine.click(redDot) ;
+		}catch (Exception e) {
+			LogManager.logInfo(HomePage.class.getName(), "Failed to clickOnBatteryIcon"+e);
+		}
+		return res;
+	}
+	
+	public boolean setTransmitPower(String val) throws Throwable  {
+		boolean res= false;
+		try {	
+			
+			this.appEngine.enterText(editBoxTransmitPower, val);
+			this.appEngine.click(btnSave);
+			
+		}catch (Exception e) {
+			LogManager.logInfo(HomePage.class.getName(), "Failed to setTransmitPower"+e);
+		}
+		return res;
+	}
+	
+	
+	
+	
+	public boolean clickOnTabChange() throws Throwable  {
+		boolean res= false;
+		try {			
+		res= this.appEngine.click(tabChange);
+		}catch (Exception e) {
+			LogManager.logInfo(HomePage.class.getName(), "Failed to click on Tab Change Link"+e);
+		}
+		return res;
+	}
+	
+	public boolean waitForText(String text) throws Throwable  {
+		boolean res= false;
+		try {			
+			
+			
+			
+			
+			
+			
+			do {
+				System.out.println("a");
+			}while(!(ExpectedConditions.alertIsPresent() != null));
+			
+			Alert alert =  this.appEngine.driver.switchTo().alert();
+			
+			System.out.println(alert.getText());
+		
+			
+			
+			
+			
+			
+			
+			
+			/*
+			 * for (int i=0 ; i< 1000000;i++) { boolean stat = ckeckTextPresent(text) ;
+			 * System.out.println(stat); if (stat) { String a =
+			 * this.appEngine.driver.findElementByXPath("//*[contains(text(),'"+text+"')]").
+			 * getText(); System.out.println(a);
+			 * //reportStatus(res,"Successfully Clicked on Tab Change Link "
+			 * ,"Unable to Click tab Change Link"); } Thread.sleep(10); }
+			 */
+			
+	
+			
+		}catch (Exception e) {
+			LogManager.logInfo(HomePage.class.getName(), "Failed to click on Tab Change Link"+e);
+		}
+		return res;
+	}
+	
+	
+	
+	public boolean ckeckTextPresent(String text) throws Throwable  {
+		boolean res= false;
+		try {		
+			res = this.appEngine.driver.findElementByXPath("//*[contains(text(),'"+text+"')]").isDisplayed();
+		}catch (Exception e) {
+			
+		}
+		return res;
+	}
+	
+	
+	
+	
+	
+	public boolean VirifyReadersPopUpExist(boolean val) throws Throwable  {
+		boolean res= false;
+		try {	
+			
+			if (val) {
+				this.appEngine.waitForElementPresent(btnCancle, gblConstants.pageLoadTimeout*10);
+			}
+		    res= this.appEngine.isElementPresent(btnCancle, "Readers Popup-Cancle Button", val);
+		
+		if (( ! val) && (! res ))  {
+			res = true;
+		}
+		
+		}catch (Exception e) {
+			LogManager.logInfo(HomePage.class.getName(), "Failed to Virify Readers PopUp Exist"+e);
+		}
+		return res;
+	}
+	
+	public boolean clickOnReadersPopUPCancleBtn() throws Throwable  {
+		boolean res= false;
+		try {			
+		res= this.appEngine.click(btnCancle);
+		}catch (Exception e) {
+			LogManager.logInfo(HomePage.class.getName(), "Failed to click On Readers Pop UP Cancle button"+e);
+		}
+		return res;
+	}
+	
+	public boolean scroolHomeTogglePageUP() throws Throwable  {
+		boolean res= false;
+		try {			
+		res= this.appEngine.SwipeAnElemnet(Setting, eleHome);
+		}catch (Exception e) {
+			LogManager.logInfo(HomePage.class.getName(), "Exceptions on scroolHomeTogglePageUP"+e);
+		}
+		return res;
+	}
+	
+	
+	
+	public boolean enableReader() throws Throwable  {
+		boolean res= false;
+		try {			
+		res= this.appEngine.click(enableReaderChkBox);
+		}catch (Exception e) {
+			LogManager.logInfo(HomePage.class.getName(), "Failed to perform eneble Reader method"+e);
+		}
+		return res;
+	}
+	
+	
+	
+	
+	public boolean verifyListOfReadersAvailable() throws Throwable  {
+		boolean res= false;
+		try {			
+			this.appEngine.waitForElementPresent(btnCancle, gblConstants.pageLoadTimeout*2);
+			@SuppressWarnings("unchecked")
+			List<MobileElement> ele = this.appEngine.driver.findElementsByClassName("android.widget.CheckedTextView");
+			
+			for (int i=0;i< ele.size();i++) {
+				String readerName= ele.get(i).getText();
+				
+				if (readerName.length() > 0) {
+					reportStatus(true,"Reader Listed in Readers Pop Up - "+readerName,"Reader List");
+					res= true;
+				}
+					
+			}	
+		}catch (Exception e) {
+			LogManager.logInfo(HomePage.class.getName(), "Failed to verify List Of Readers Available method"+e);
+		}
+		return res;
+	}
+
+
+		public boolean selectReadersFromList(String readerName) throws Throwable  {
+			boolean res= false;
+			try {	
+				this.appEngine.waitForElementPresent(btnCancle, gblConstants.pageLoadTimeout*2);
+				@SuppressWarnings("unchecked")
+				List<MobileElement> ele = this.appEngine.driver.findElementsByClassName("android.widget.CheckedTextView");
+				for (int i=0;i< ele.size();i++) {
+					String strReaderName= ele.get(i).getText();
+					
+					if (strReaderName.contains(readerName)) {
+						ele.get(i).click();
+						reportStatus(true,"Successfully selected Reader from Readers list pop up"+readerName,"Reader List");
+						res = true;
+						break; 
+					}
+						
+				}	
+			}catch (Exception e) {
+				LogManager.logInfo(HomePage.class.getName(), "Failed to select Readers From List"+e);
+			}
+			return res;
+		}
+	
+	
+	
+	
+	public boolean RefreshHomePageElements() throws Throwable {
+		boolean res= false;
+		try {			
+		
+		LogManager.logInfo(HomePage.class.getName(), "Swipe toggle Icon to Refresh elements..");
+		this.appEngine.swipe(this.appEngine.driver, DIRECTION.LEFT);
+		this.appEngine.click(eleHome);
+		Thread.sleep(2000);
+		res = true;
+		}catch (Exception e) {
+			
+		}
+		return res;
+	}
+
+	
+public boolean clickOnToggleIconbar() {
+	boolean res= false;
+	try {	
+		this.appEngine.waitForElementVisibles(toggleIcon, gblConstants.pageLoadTimeout);
+		this.appEngine.click(toggleIcon);
+	
+	}catch (Exception e) {
+		 LogManager.logInfo(HomePage.class.getName(), "Failed click On Toggle Icon -Method-"+e);	
+	}
+	return true;
+}
+
+	
+
+
+
+	/*
+	 * public boolean SwipeAnElemnet(WebElement elestarting,WebElement eleEnding) {
+	 * boolean res= false; try { //**** Starting point to ending point Swipe.****
+	 * this.appEngine.waitForElementVisibles(elestarting,
+	 * gblConstants.pageLoadTimeout);
+	 * this.appEngine.waitForElementVisibles(eleEnding,
+	 * gblConstants.pageLoadTimeout); new
+	 * TouchAction(this.appEngine.driver).press(PointOption.point(elestarting.
+	 * getLocation())) .moveTo(PointOption.point(eleEnding.getLocation()))
+	 * .release() .perform(); }catch (Exception e) {
+	 * LogManager.logInfo(HomePage.class.getName(), "Failed SwipeAnElemnet-"+e); }
+	 * return true; }
+	 */
+
+
+
+
+
+
+
+
+
+
+public boolean clickHomeIcon (String homeIconText) {
+	boolean res= false;
+	try {	
+		
+		//res = this.appEngine.ScroolElementVisible("com.a2b.rfid.rfidandroid:id/homeRecyclerView",homeIconText);
+		Thread.sleep(3000);
+	@SuppressWarnings("unchecked")
+	List<MobileElement> ele = this.appEngine.driver.findElementsByXPath("//android.support.v7.widget.RecyclerView/android.widget.LinearLayout");
+	for (int i = 0; i<=ele.size();i++ ) {
+		
+		String actText = ele.get(i).findElementByClassName("android.widget.TextView").getAttribute("text");
+		
+		if (actText.contains(homeIconText)) {
+			ele.get(i).findElementByClassName("android.widget.ImageView").click();
+			res= true;
+			break;
+		}
+		
+	}	
+	}catch (Exception e) {
+		 LogManager.logInfo(HomePage.class.getName(), "Failed click Home Icon -Method-"+e);
+	}
+	return res;
+}
+
+
+ 
+
+
+@SuppressWarnings("static-access")
+public boolean LogOut() {
+	boolean res= false;
+	try {	
+	clickOnToggleIconbar();
+	//this.appEngine.swipeAnElement(this.appEngine.driver, DIRECTION.UP,eleHome);
+	
+	this.appEngine.scrollUsingDirectionAndElement("up", (RemoteWebElement) eleHome);
+	res= this.appEngine.click(Logout);
+	}catch (Exception e) {
+		 LogManager.logInfo(HomePage.class.getName(), "Failed click Log out");	
+	}
+	return res;
+}
+
+
+
+
+
+
+
+
+
+
+}

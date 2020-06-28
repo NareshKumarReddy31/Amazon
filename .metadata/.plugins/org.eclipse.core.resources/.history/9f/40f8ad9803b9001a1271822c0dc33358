@@ -1,0 +1,214 @@
+package a2b.utils;
+
+import java.sql.ResultSet;
+import java.util.List;
+import java.util.Map;
+import org.json.JSONObject;
+import a2b.core.logs.LogManager;
+
+public class A2BDatabaseQueries {
+    private A2BDatabaseUtilities db = new A2BDatabaseUtilities();
+
+    public List<JSONObject> getRecentCreditPayment(String accountGuid) {
+        db.establishDatabaseConnection("offenderconnect");
+        List<JSONObject> resList = executeCreditPaymentQuery(accountGuid);
+        return resList;
+    }
+
+    public String getAccountNumberFromAccountTable(String accountGuid) {
+        db.establishDatabaseConnection("offenderconnect");
+        List<JSONObject> resList = executeAccountNumberFromAccountTableQuery(accountGuid);
+        return (String) resList.get(0).get("accountNumber");
+    }
+    
+    public String getPasswordFromAccountTable(String userId) {
+        db.establishDatabaseConnection("offenderconnect");
+        List<JSONObject> resList =executeAccountDataFromAccountTableQuery(userId);
+        return (String) resList.get(0).get("password");
+    }
+    
+    public int updateAccountPassword(String userId, String password) {
+        db.establishDatabaseConnection("offenderconnect");
+        List<JSONObject> resList = executeUpdateAccountPasswordQuery(userId, password);
+        int updCount = resList.get(0).getInt("UpdatedRows");
+        return updCount;
+    }
+
+    public int getNumOfActiveCreditCards(String accountNumber) {
+        db.establishDatabaseConnection("offenderconnect");
+        List<JSONObject> resList = executeNumOfActiveCreditCardsQuery(accountNumber);
+        return Integer.parseInt((String) resList.get(0).get("count(*)"));
+    }
+
+    public String getAccountGuidFromAccountTable(String username) {
+        db.establishDatabaseConnection("offenderconnect");
+        List<JSONObject> resList = executeAccountDataFromAccountTableQuery(username);
+        return (String) resList.get(0).get("accountGuid");
+    }
+
+    public List<JSONObject> getFacilitiesOfAccount(String accountGuid){
+        db.establishDatabaseConnection("offenderconnect");
+        List<JSONObject> resList = executeGetFacilitiesOfAccountQuery(accountGuid);
+        return resList;
+    }
+
+
+    public String getAutoPayId(String inmateId) {
+        db.establishDatabaseConnection("offenderconnect");
+        List<JSONObject> resList = executeAutoPayIdQuery(inmateId);
+        return (String) resList.get(0).get("autopayId");
+    }
+
+    public List<JSONObject> getAccountAutoPayInfo(String autopayID) {
+        db.establishDatabaseConnection("offenderconnect");
+        List<JSONObject> resList = executeAccountAutoPayQuery(autopayID);
+        return resList;
+    }
+
+    public List<JSONObject> updateAutoPayTrust(String autopayId) {
+        db.establishDatabaseConnection("offenderconnect");
+        List<JSONObject> resList = executeUpdateAutoPayTrustQuery(autopayId);
+        return resList;
+    }
+    public List<JSONObject> getMessagingTransactionDescription(String accountGuid){
+        db.establishDatabaseConnection("offenderconnect");
+        List<JSONObject> restList = executeMessagingTransactionPurchaseQuery(accountGuid);
+        return restList;
+    }
+
+    public List<JSONObject> getMessagingEmail(String accountGuid){
+        db.establishDatabaseConnection("offenderconnect");
+        List<JSONObject> restList = executeMessagingSendEmailQuery(accountGuid);
+        return restList;
+    }
+    
+    public String getCorrectionsFee(String facilityServId, String method){
+        db.establishDatabaseConnection("offenderconnect");
+        List<JSONObject> resList = executeCorrectionsFeeQuery(facilityServId, method);
+        return (String) resList.get(0).get("flatFeeAmount");
+    }
+
+    // All the queries. These queries can be reused and that why not make part of the csv
+
+    /* returns deposit data for all deposit types
+    * CHARGE_AMOUNT is used to validate F&F AdvancePay Phone deposits
+    * CREDIT_AMOUNT is used to validate Inmate deposits: pin debit, debit link, trust
+    */
+    private List<JSONObject> executeCreditPaymentQuery(String accountGuid) {
+        // We cannot run the below Query to return everything as there is a blob that breaks the query
+        String query = String.format(" SELECT * FROM (SELECT CREDIT_AMOUNT, CHARGE_AMOUNT, TRANSACTION_SERVICE_TYPE FROM OFFENDERCONNECT.MASTER_TRANSACTIONS WHERE ACCOUNT_GUID = '%s' AND PAYMENT_STATUS = 'ACCEPTED' ORDER BY PAYMENT_DATE_TIME DESC) WHERE ROWNUM < 2", accountGuid);
+        List<JSONObject> resList = db.runQuery(query);
+        return resList;
+    }
+
+    private List<JSONObject> executeAccountNumberFromAccountTableQuery(String accountGuid) {
+        String query = String.format("SELECT * FROM OFFENDERCONNECT.ACCOUNT WHERE ACCOUNT_GUID='%s'", accountGuid);
+        List<JSONObject> resList = db.runQuery(query);
+        return resList;
+    }
+    
+    private List<JSONObject> executeNumOfActiveCreditCardsQuery(String accountNumber) {
+        String query = String.format("SELECT COUNT(*) FROM OFFENDERCONNECT.STORED_CREDIT_CARD WHERE ACCOUNT_NUMBER='%s' AND ACTIVE=1", accountNumber);
+        List<JSONObject> resList = db.runQuery(query);
+        return resList;
+    }
+
+    private List<JSONObject> executeAccountDataFromAccountTableQuery(String username) {
+        String query = String.format("SELECT * FROM OFFENDERCONNECT.ACCOUNT WHERE USER_ID='%s'", username);
+        List<JSONObject> resList = db.runQuery(query);
+        return resList;
+    }
+
+    public List<JSONObject> getPinDebitPayment(String accountGuid) {
+        db.establishDatabaseConnection("offenderconnect");
+        List<JSONObject> resList = executePinDebitPaymentQuery(accountGuid);
+        return resList;
+    }
+
+    // Query for PinDebit payment
+    private List<JSONObject> executePinDebitPaymentQuery(String accountGuid) {
+        String query = String.format(" SELECT * FROM (SELECT CHARGE_AMOUNT, TRANSACTION_SERVICE_TYPE FROM OFFENDERCONNECT.MASTER_TRANSACTIONS WHERE ACCOUNT_GUID = '%s' AND PAYMENT_STATUS = 'ACCEPTED' ORDER BY PAYMENT_DATE_TIME DESC) WHERE ROWNUM < 2", accountGuid);
+        List<JSONObject> resList = db.runQuery(query);
+        return resList;
+    }
+
+    private List<JSONObject> executeGetFacilitiesOfAccountQuery(String accountGuid) {
+        String query = String.format("SELECT afl.OFFENDERCONNECTSITEID, fs.FACILITYNAME FROM OFFENDERCONNECT.ACCOUNT_FACILITY_LINK  afl\n" +
+                "INNER JOIN OFFENDERCONNECT.FACILITYSERVICES fs ON fs.OFFENDERCONNECTSITEID = afl.OFFENDERCONNECTSITEID\n" +
+                "INNER JOIN OFFENDERCONNECT.ACCOUNT a ON a.ACCOUNT_GUID = afl.ACCOUNT_GUID\n" +
+                "WHERE afl.ACCOUNT_GUID = '%s' ", accountGuid);
+        List<JSONObject> resList = db.runQuery(query);
+        return resList;
+    }
+
+    // Query to get Active AutopayId
+    private List<JSONObject> executeAutoPayIdQuery(String inmateId){
+        String query = String.format(" SELECT * FROM OFFENDERCONNECT.ACCOUNT_AUTOPAY WHERE BOOKING_NUM = '%s' AND STATUS='Active'", inmateId);
+        List<JSONObject> resList = db.runQuery(query);
+        return resList;
+    }
+
+
+    //Query to update trust autopay status Active to Inactive
+    private List<JSONObject> executeUpdateAutoPayTrustQuery(String autopayId) {
+        String query = String.format("UPDATE OFFENDERCONNECT.ACCOUNT_AUTOPAY SET STATUS ='Inactive' WHERE STATUS ='Active' AND AUTOPAY_ID='%s'", autopayId);
+        List<JSONObject> resList = db.runQuery(query);
+        return resList;
+    }
+
+    private List<JSONObject> executeAccountAutoPayQuery(String autopayId) {
+        String query = String.format("SELECT * FROM OFFENDERCONNECT.ACCOUNT_AUTOPAY WHERE AUTOPAY_ID = '%s'", autopayId);
+        List<JSONObject> resList = db.runQuery(query);
+        return resList;
+    }
+    private List<JSONObject> executeMessagingTransactionPurchaseQuery(String accountGuid){
+        String query = String.format("SELECT * FROM(SELECT TRANSACTION_DESCRIPTION,TRANSACTION_SERVICE_TYPE, CHARGE_AMOUNT, PAYMENT_DATE_TIME, PAYMENT_STATUS FROM OFFENDERCONNECT.MASTER_TRANSACTIONS WHERE ACCOUNT_GUID = '%s' AND TRANSACTION_DESCRIPTION = 'EMAIL PACKAGE PURCHASE' AND PAYMENT_STATUS = 'ACCEPTED' ORDER BY PAYMENT_DATE_TIME DESC) WHERE ROWNUM <2", accountGuid);
+        List<JSONObject> resList = db.runQuery(query);
+        return resList;
+    }
+    
+    //query to update old password after change password
+    private List<JSONObject> executeUpdateAccountPasswordQuery(String userId, String password) {
+        String query = String.format("UPDATE OFFENDERCONNECT.ACCOUNT SET PASSWORD ='%s' WHERE USER_ID ='%s'", password, userId);
+        List<JSONObject> resList = db.runQuery(query);
+        return resList;
+    }
+
+    //query for messagingSend Email
+    private  List<JSONObject> executeMessagingSendEmailQuery(String accountGuid){
+        String query = String.format("SELECT * FROM (SELECT ACCOUNT_GUID, CONTACT_ID, MESSAGE_COST FROM OFFENDERCONNECT.SENT_EMAILS ORDER BY DATE_TIME DESC) WHERE ROWNUM <2", accountGuid);
+        List<JSONObject> resList =db.runQuery(query);
+        return resList;
+    }
+    
+    //query to get corrections fee
+    private List<JSONObject> executeCorrectionsFeeQuery(String facilityServiceId, String method) {
+        String query = String.format("SELECT * FROM OFFENDERCONNECT.CORRECTIONS_SERVICE_FEE where FACILITY_SERVICE_ID ='%s' and method = '%s'", facilityServiceId, method);
+        List<JSONObject> resList = db.runQuery(query);
+        return resList;
+    }
+    
+	/**
+	 * @Purpose: To get the value from Facility Account table of OC_DB for provided column name
+	 * @Input : need to pass String userId, String columnName
+	 * @Output: String value
+	 * @Author-Date: 02-14-2019
+	 * @Reviewed-Date:
+	 */
+	public String getFacilityAdminAccountData(String userId, String columnName) {
+		String value = null;
+		try {
+			db.establishDatabaseConnection("offenderconnect");
+			ResultSet OrcResultSet;
+			String sqlQuery = "select * from FACILITYACCOUNT where USERID='" + userId + "'";
+			OrcResultSet = db.dbConnection.getQueryResponse(sqlQuery);
+			List<Map<String, String>> resList = db.dbConnection.getResultAsList(OrcResultSet);
+			value = resList.get(0).get(columnName);
+		} catch (Exception e) {
+			LogManager.logException(e, A2BDatabaseQueries.class.getName(), "Exception to get value for "+columnName+" from database");
+		}
+		return value;
+	}
+    
+}
+

@@ -1,0 +1,114 @@
+package a2b.utils;
+
+import com.google.common.base.CaseFormat;
+import a2b.config.gblConstants;
+import a2b.core.database.DatabaseVerification;
+import net.minidev.json.parser.JSONParser;
+
+import org.json.JSONObject;
+import java.sql.ResultSet;
+import java.sql.ResultSetMetaData;
+import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.List;
+
+
+public class A2BDatabaseUtilities {
+
+    public DatabaseVerification dbConnection = null;
+    public ResultSet resultSet = null;
+
+    /*
+     * Purpose: To Establish the Database Connection
+     * Author-date: Maheshwari, Surbhi 10/11/18
+     * Reviewer date:
+     */
+
+    /*
+     * establishes the database connection
+     * @param dbName name of the database to connect
+     */
+    public void establishDatabaseConnection(String dbName){
+        switch(dbName){
+            case "offenderconnect":
+                dbConnection = new DatabaseVerification(
+                        gblConstants.suiteConfig.getdatabaseType(gblConstants.dbName_OffenderConnect),
+                        gblConstants.suiteConfig.getdatabaseServer(gblConstants.dbName_OffenderConnect),
+                        gblConstants.suiteConfig.getdatabaseLoginUser(gblConstants.dbName_OffenderConnect),
+                        gblConstants.suiteConfig.getdatabaseLoginPassword(gblConstants.dbName_OffenderConnect));
+                break;
+            case "ibanker":
+                dbConnection = new DatabaseVerification(
+                        gblConstants.suiteConfig.getdatabaseType(gblConstants.dbName_IBanker),
+                        gblConstants.suiteConfig.getdatabaseServer(gblConstants.dbName_IBanker),
+                        gblConstants.suiteConfig.getdatabaseLoginUser(gblConstants.dbName_IBanker),
+                        gblConstants.suiteConfig.getdatabaseLoginPassword(gblConstants.dbName_IBanker));
+                break;
+        }
+
+    }
+
+    /*
+     * Purpose: To run the query
+     * Author-date: 
+     * Reviewer date:
+     */
+
+    /*
+     * runs the query
+     * @param sqlQuery Query to run
+     */
+    //This is now able to handle Select and Update queries
+    public List<JSONObject> runQuery(String sqlQuery){
+    	List<JSONObject> resList = null;
+    	try {
+    		 if(sqlQuery.contains("SELECT")){
+    	            resList = convertResultSetToListOfJSON(dbConnection.getQueryResponse(sqlQuery));
+    	        }else if(sqlQuery.contains("UPDATE")) {
+    	        	resList = new ArrayList<JSONObject>();
+    	        	JSONObject jsonObj = new JSONObject();
+    	        	String updCount = String.valueOf(dbConnection.executeUpdateQuery(sqlQuery));
+    	        	jsonObj.put("UpdatedRows", updCount);
+    	        	resList.add(jsonObj);
+    	        }else {
+    	            resList= new ArrayList<>();
+    	        }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return resList;
+
+    }
+
+    /*
+     * Purpose: Private method to convert the ResultSet into JSON
+     * Author-date: 
+     * Reviewer date:
+     */
+
+    /*
+     * convert the resultset to JSON
+     * @param resultSet
+     */
+    private List<JSONObject> convertResultSetToListOfJSON(ResultSet resultSet) {
+        List<JSONObject> resList = new ArrayList<>();
+        try {
+            ResultSetMetaData rsMeta = resultSet.getMetaData();
+            int columnCount = rsMeta.getColumnCount();
+            while(resultSet.next()){
+                JSONObject obj = new JSONObject();
+                for(int i=1; i<=columnCount; i++){
+                    String key = CaseFormat.UPPER_UNDERSCORE.to(CaseFormat.LOWER_CAMEL, rsMeta.getColumnName(i));
+                    String value = resultSet.getString(i);
+                    obj.put(key, value);
+                }
+                resList.add(obj);
+            }
+        } catch (SQLException e){
+            e.printStackTrace();
+        }
+
+        return resList;
+    }
+}
+

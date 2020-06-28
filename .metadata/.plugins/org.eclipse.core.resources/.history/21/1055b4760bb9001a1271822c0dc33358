@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<suite name="A2B-Mobile" allow-return-values="false">
+	<listeners>
+		<listener class-name="amazon.core.listeners.TestNGListener" />
+	</listeners>
+	
+	<!--  Execution Environment Parameters  -->
+	
+	<parameter name="AppiumVerNo" value="1.14.2" />
+	<parameter name="AppiumServerUrl" value="http://0.0.0.0:4723" />
+	<parameter name="AppUT" value="A2B-Android" />
+	<parameter name="AppTestEnv" value="QA-Environment" />
+	<parameter name="DeviceUT" value="9887bc34495755394d" />
+	
+
+	<!-- Test case: include test rails id -->
+	<test name="A2B Tracking-Mobile: Smoke tests">
+		<classes>
+			<class name="a2b.mobile.Phase_5.CreateAssetTests">
+				<methods>
+					<include name="Test01_CreateAsset">
+					<parameter name="testCaseName" value="Phase-5: Test01:- Create An Asset" />
+					</include>	
+					
+				    <include name="Test02_CreateAsset">
+					<parameter name="testCaseName" value="Phase-5: Test02:- Create An Asset" />
+					</include> 
+				  
+					<include name="Test03_CreateAsset">
+					<parameter name="testCaseName" value="Phase-5: Test03:- Create An Asset" />
+					</include>	
+						
+					<include name="Test04_VerifyCreatedAsset">
+					<parameter name="testCaseName" value="Phase-5: Test04:- Verify Created Asset" />
+					</include>
+
+					<include name="Test05_CreateAsset">
+					<parameter name="testCaseName" value="Phase-5: Test05:- Create An Asset" />
+					</include>		
+						
+				</methods>
+			</class>
+		</classes>
+	</test>
+</suite>  

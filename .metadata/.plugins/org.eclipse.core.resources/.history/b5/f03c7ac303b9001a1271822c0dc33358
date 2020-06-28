@@ -1,0 +1,336 @@
+package a2b.mobile.Phase_1;
+
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.util.HashMap;
+import org.testng.ITestContext;
+import org.testng.annotations.DataProvider;
+import org.testng.annotations.Test;
+import com.aventstack.extentreports.Status;
+
+import a2b.mobile.android.pages.EnvironmentSetUpPage;
+import amazon.config.gblConstants;
+import amazon.mobile.android.engine.A2BWebActionEngine;
+import amazon.mobile.android.engine.A2BWebTestEngine;
+import a2b.core.database.DatabaseVerification;
+import a2b.core.fileutils.TestDataProviders;
+
+
+
+
+
+public class UCWeb_Phase_1 extends A2BWebTestEngine {
+	
+	public A2BWebActionEngine actEngine = null;
+	public String className = UCWeb_Phase_1.class.getName();
+	public EnvironmentSetUpPage enviPage = null ; 
+	
+	
+	
+	
+     /************************************************************************************************************
+     * @ Set UP Name: Environment Set for RFID Mobile App before Run
+     * @author Naresh Gorla
+     * **********************************************************************************************************
+     */
+	@DataProvider(name="EnvironmentSetUp")
+	public static Object[][] ManagerCreates() throws FileNotFoundException, IOException{
+		String inpFileName = "RFIDAPPTestData.xlsx";
+		String inpSheetName = "EnviTestData";
+		Object[][] data = TestDataProviders.loadExcelTable(inpFileName, inpSheetName);		
+		return data;		
+	}
+	
+	@Test(dataProvider="EnvironmentSetUp", dataProviderClass = UCWeb_Phase_1.class)
+	public void UCWeb_Phase1 (HashMap<String, String> inpDetails,ITestContext testContext) {
+		boolean res = false;
+		
+	    // Loading Test Data 
+		String setSingleUser = inpDetails.get("SQL-Set-SingleUser").trim();
+		String DropDB_Sql = inpDetails.get("DB-Drop").trim();
+		String reStoreDB = inpDetails.get("SQL-Restore-DB").trim();
+		String setMultiUsers = inpDetails.get("SQL-Set-MultiUsers").trim();	
+		String flgDBRestore = inpDetails.get("DB-Restore").trim();;
+		//String flgDBRestore = "NO";
+		
+		String strUserName = inpDetails.get("UserName").trim();
+		String strPassWord = inpDetails.get("PassWord").trim();
+		String assetID = inpDetails.get("AssetID").trim();
+		String inventoryNamae = inpDetails.get("INventoryName").trim();
+		String LocationID = inpDetails.get("LocationID").trim();
+		
+		String filePath = System.getProperty("user.dir") + File.separator+"TestData" + File.separator+"Grouping-SQl.sql";
+		
+		String G1 = System.getProperty("user.dir") + File.separator+"TestData" + File.separator+"AcquisitionShipmentDocuments.sql";
+		
+		
+		//String rand = this.a2bWebActionEngg.getRandom("INT", 3);
+		
+		//inventoryNamae = inventoryNamae ;
+		
+		
+		
+//		String sql = setSingleUser+"\n"+
+//			     reStoreDB+"\n"+
+//			     setMultiUsers ; 
+		String sql = reStoreDB ;
+		String sql_1 = setSingleUser+"\n"+
+				       DropDB_Sql ;
+		try {
+			
+			
+			//***************** Power Shell Methods to Restart UC! Server **************************
+			
+			/*
+			 * Process p = new ProcessBuilder() .inheritIO() .command("powershell",
+			 * "invoke-command", "-computername", "localhost", "-filepath",
+			 * "C:\\Users\\ngorla\\Desktop\\StartService.ps1").start();
+			 */
+            //****************************************************************************************     
+			
+			
+			// *******************  Drop DB **********************
+              if (flgDBRestore.toUpperCase().contains("YES")) {
+            	  System.out.println("Drop -RFID Tracker - Data Base Started....");
+            	  DatabaseVerification db = new DatabaseVerification("MySQL","jdbc:sqlserver://devdb:1433","master","uid","uid");
+  				  reportStatus(true,"Successfully initiated DataBase Conection...","DB Connection");
+  				  db.executeQuery(sql_1);
+  				  reportStatus(true,"Successfully Deleted RFID Tracker Data base.. ","Fail To Drop Database ");	
+			}
+			
+			
+			//************* DB - Restore- Rfid Tracker ***********************************************
+			
+			
+			
+			
+			if (flgDBRestore.toUpperCase().contains("YES")) {
+				Thread.sleep(10000);
+				System.out.println("ReStroe -RFID Tracker - Data Base Started....");
+				DatabaseVerification db = new DatabaseVerification("MySQL","jdbc:sqlserver://devdb:1433","master","uid","uid");
+				reportStatus(true,"Successfully initiated DataBase Conection...","DB Connection");
+				System.out.println("RFID Tracker -Restore is in progress ....");
+				db.executeQuery(sql);
+				reportStatus(true,"Successfully Restored RFID Tracker Data base.. ","Restore Activity ");
+				
+			}
+			
+			//******************************************************************************************
+			   
+			   //this.a2bWebActionEngg.driver.navigate().to(gblConstants.suiteConfig.getTestAppUrl(this.appUnderTest, this.testEnvName));
+			  
+			  for  (int i = 0 ; i < 100 ;i++) {
+				  boolean loadpage = loadApplication(a2bWebActionEngg);
+				  
+				  if (loadpage && i > 5) {
+					  break ;
+				  }
+				  Thread.sleep(5000);
+			  }
+			 
+			
+			  
+			  reportStatus(true,"Successfully Refreshed Browser ","Browser Refresh ");
+			  
+			  enviPage = new EnvironmentSetUpPage(this.a2bWebActionEngg);
+			 
+			  
+			  if (enviPage.waitForPage()) {
+				  reportStatus(true,"Successfully Launched A2B Tracking Web Login Page.. ","Login Page ");
+				  // Verify _ Application version .
+				  enviPage.GetWebApplicationVersion();
+				  // Login TO A2B Web Application
+				  res= enviPage.A2BTrackingLoginWeb(strUserName, strPassWord);
+				  
+				  if (enviPage.waitForHomePage()) {
+					  reportStatus(true,"Successfully Launched A2B Tracking Web Login Page.. ","Login Page ");
+					  
+					  res= enviPage.NavigateToAsset();
+					  reportStatus(res,"Successfully Loaded Asset Page With Out Error ","Fail to Load Asset Page ");
+					  attachScreenshot(Status.INFO, "Page info");
+					 
+					  res=  enviPage.NavigateToContracts();
+					  reportStatus(res,"Successfully Loaded Contracts Page With Out Error ","Fail to Load Contracts Page ");
+					  attachScreenshot(Status.INFO, "Page info");
+					  
+					  res= enviPage.NavigateToTracking();
+					  reportStatus(res,"Successfully Loaded Tracking Page With Out Error ","Fail to Load Tracking Page ");
+					  attachScreenshot(Status.INFO, "Page info");
+					  
+					  res= enviPage.NavigateToReports();
+					  reportStatus(res,"Successfully Loaded Reporting Page With Out Error ","Fail to Load Reporting Page ");
+					  attachScreenshot(Status.INFO, "Page info");
+					 
+					  res= enviPage.NavigateToAdmin();
+					  reportStatus(res,"Successfully Loaded Administrative Page With Out Error ","Fail to Load Administrative Page ");
+					  attachScreenshot(Status.INFO, "Page info");
+					  
+					  res = enviPage.NavigateToHome();
+					  reportStatus(res,"Successfully Loaded Home Page With Out Error ","Fail to Load Home Page ");
+					  attachScreenshot(Status.INFO, "Page info");
+				  
+					  //Verify Asset Details
+					  res= enviPage.NavigateToAsset();
+					  reportStatus(res,"Successfully Navigate to asset list page ","Fail to navigate to Asset List page ");
+					  
+					  res= enviPage.clickOnAssetFromAssetListPage(assetID);
+					  reportStatus(res,"Successfully Displayed Asset details page for - "+assetID,"Fail to display asset detail page for- "+assetID);
+					  attachScreenshot(Status.INFO, "Page info");
+					  
+					  // **** Create and Edit And Reconcile Inventory Verifications
+					  res= enviPage.NavigateToTracking();
+					  reportStatus(res,"Successfully Navigate to Inventory Page ","Fail to Navigate Inventory Page");
+					  
+					  res= enviPage.clickOnActionLink(enviPage.lnkCreateInventory, "Create Inventory", "Create Inventory");
+					  reportStatus(res,"Successfully Clicked On Create Inventory Link ","Fail to Click On Create Inventory");
+					  
+					  res= this.a2bWebActionEngg.type(enviPage.inventoryName, inventoryNamae);
+					  reportStatus(res,"Successfully Entered Inventory Name as- "+inventoryNamae,"Fail to Enter Inventory Name as- "+inventoryNamae);
+					 
+					  res= this.a2bWebActionEngg.click(enviPage.Location_btnEnableScan, "btn Loaction Scan");
+					  reportStatus(res,"Successfully Clicked On Location enable scan button ","Fail to Click On Location enable scan button");
+					 
+					 // res= this.actEngine.type(enviPage.LocationScanbox, LocationID);
+					  res =  this.a2bWebActionEngg.type(enviPage.LocationScanbox, LocationID);
+					  reportStatus(res,"Successfully Location Scan ID "+LocationID,"Fail to Enter Location scan id as - "+LocationID);
+					   Thread.sleep(10000);
+					   
+				      res = enviPage.clickOnActionLink(enviPage.btnCreate, "Create Button","Edit Inventory");
+					  reportStatus(res,"Successfully Clicked on Create Button- And Inventory Created Successfully ","Fail to click on create button ");
+					  attachScreenshot(Status.INFO, "Page info");
+					  
+					  res = enviPage.clickOnActionLink(enviPage.lnkInventoryList, "lnkInventoryList","Inventory List");
+					  reportStatus(res,"Successfully Clicked on Inventory List link and Navigated to List page","Fail to click on Inventory List ");
+					  attachScreenshot(Status.INFO, "Page info");
+					  enviPage.WaitForLoadIconDisAppear();
+					  
+					  res = enviPage.clickOnInventoryFromInventoryListPage(inventoryNamae);
+					  reportStatus(res,"Successfully Navigated to Edit Inventory Page","Fail to Navigate edit inventory page ");
+					 
+					  res = enviPage.clickOnActionLink(enviPage.Reconcile, "lnkReconcile","Reconcile Inventory");
+					  reportStatus(res,"Successfully clicked on Reconcile link","Fail to click on Reconcile");
+					  
+					  res = enviPage.VerifyMissingAssetCount("10");
+					  reportStatus(res,"Successfully verified Missing Asset Count- 10","Fail to verify Missing Asset Count");
+					  attachScreenshot(Status.INFO, "Page info");
+					  
+					  // Navigate to Asset Page And Create Asset 
+					  
+					  res= enviPage.NavigateToAsset();
+					  reportStatus(res,"Successfully Navigate to asset list page ","Fail to navigate to Asset List page ");
+	
+					  res = enviPage.clickOnActionLink(enviPage.CreateAsset, "Create Asset","Create Asset");
+					  reportStatus(res,"Successfully clicked on Create Asset link","Fail to click on Create Asset");
+					  
+					  res = enviPage.clickOnActionLink(enviPage.btnCreateAsset, "Create Button","Asset Detail");
+					  reportStatus(res,"Successfully clicked create button- Asset created successfully","Fail to click create button - Asset dose not created");
+					  attachScreenshot(Status.INFO, "Page info");
+					  
+					  // Log Out
+					  enviPage.LogOutWebApp();
+					  reportStatus(res,"Successfully clicked on Log Out Button- Redirected to Login page","Fail to Log Out- A2B Tracking Web Application");
+					  attachScreenshot(Status.INFO, "Page info");
+				 
+				  }else {
+					  reportStatus(false,"Home Page ","Unable to Login to A2B Tracking Web Application - Home Page Unable to load ");
+				  }  
+			  }else {
+				  reportStatus(false,"Login Page ","Unable to Launch Login Page ");
+              }			
+		} catch (Exception e) {
+			reportStatus(false,"Restore Activity","RFID - DB Restore Activity Fail  ");
+		}
+	}
+	
+
+
+	
+	@Test(dataProvider="EnvironmentSetUp", dataProviderClass = UCWeb_Phase_1.class)
+	public void Phase_6_Settings (HashMap<String, String> inpDetails,ITestContext testContext) {
+		boolean res = false;
+		
+	    // Loading Test Data 
+		String strUserName = inpDetails.get("UserName").trim();
+		String strPassWord = inpDetails.get("PassWord").trim();
+		
+		
+		try {
+			
+		
+			
+			
+			
+			  for  (int i = 0 ; i < 100 ;i++) {
+				  boolean loadpage = loadApplication(a2bWebActionEngg);
+				  
+				  if (loadpage && i > 5) {
+					  break ;
+				  }
+				  Thread.sleep(1000);
+			  }
+			 
+			
+			  
+			  reportStatus(true,"Successfully Refreshed Browser ","Browser Refresh ");
+			  
+			  enviPage = new EnvironmentSetUpPage(this.a2bWebActionEngg);
+			 
+			  
+			  if (enviPage.waitForPage()) {
+				  reportStatus(true,"Successfully Launched A2B Tracking Web Login Page.. ","Login Page ");
+				  // Verify _ Application version .
+				  enviPage.GetWebApplicationVersion();
+				  // Login TO A2B Web Application
+				  res= enviPage.A2BTrackingLoginWeb(strUserName, strPassWord);
+				  
+				  if (enviPage.waitForHomePage()) {
+					  reportStatus(true,"Successfully Logged in to A2B Tracking Web .. ","Failed to login ");
+					 Thread.sleep(1000);
+					  
+					 res= enviPage.NavigateToAsset();
+					 reportStatus(res,"Successfully Loaded Asset List page ","Fail to Load Asset List Page ");
+					 attachScreenshot(Status.INFO, "Page info");					  					  
+					  res= enviPage.clickOnAssetFromAssetListPage("A100081");
+					  reportStatus(res,"Successfully Displayed Asset details page for - "+"A100081","Fail to display asset detail page for- "+ "A100081");					 
+					  reportStatus(res,"\"Successfully verified Asset details for- A100081","Fail to verify Asset details of- A100081");			
+					  attachScreenshot(Status.INFO, "Page info");
+					// Back to home page
+					  res= enviPage.NavigateToHome();
+			
+					// Set settings for Default system profile
+					 res=  enviPage.loadURL("Admin/Settings/UserProfile", "Default System Profile");  
+					  reportStatus(res,"Successfully Navigate to Default System Profile","Failed to navigate to Default System Profile ");
+					  res= this.a2bWebActionEngg.setCheckbox(enviPage.returnExpected, false, "Return Expected");
+					  reportStatus(res,"Successfully Un checked Return Expected check box","Failed Un check Return expected check box ");
+					  attachScreenshot(Status.INFO, "Page info");
+					 Thread.sleep(1000); 
+					 res = this.a2bWebActionEngg.click(enviPage.save, "Save");
+					 reportStatus(res,"Successfully saved Default System Profile details ","Failed save Default System Profile details ");
+					  // Log Out
+					  enviPage.LogOutWebApp();
+					  reportStatus(res,"Successfully clicked on Log Out Button- Redirected to Login page","Fail to Log Out- A2B Tracking Web Application");
+					  attachScreenshot(Status.INFO, "Page info");
+				 
+				  }else {
+					  reportStatus(false,"Home Page ","Unable to Login to A2B Tracking Web Application - Home Page Unable to load ");
+				  }  
+			  }else {
+				  reportStatus(false,"Login Page ","Unable to Launch Login Page ");
+              }			
+		} catch (Exception e) {
+			reportStatus(false,"Phase_6_Settings","Phase_6_Settings- Failed  ");
+		}
+	}
+	
+	
+	/*
+	 * @AfterClass(alwaysRun=true)
+	 *  public void logOut() {
+	 * 
+	 * // enviPage = new EnvironmentSetUpPage(this.a2bWebActionEngg); //
+	 * enviPage.LogOutWebApp(); }
+	 */
+	
+	
+}

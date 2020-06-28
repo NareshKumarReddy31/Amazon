@@ -1,0 +1,289 @@
+package a2b.mobile.android.pages;
+
+import io.appium.java_client.pagefactory.AndroidFindBy;
+import io.appium.java_client.pagefactory.AppiumFieldDecorator;
+import org.openqa.selenium.WebElement;
+import org.openqa.selenium.interactions.Actions;
+import org.openqa.selenium.support.PageFactory;
+
+import com.aventstack.extentreports.Status;
+
+import a2b.mobile.android.engine.A2BMobileActionEngine;
+import a2b.mobile.android.engine.A2BMobileTestEngine;
+import a2b.config.gblConstants;
+import a2b.core.logs.LogManager;
+
+public class BetaAppPage extends A2BMobileTestEngine{
+
+	private A2BMobileActionEngine appEngine =  new A2BMobileActionEngine();;
+
+
+//***************************** Start Locators ********************************************************************************	
+
+	@AndroidFindBy(xpath = "//*[@text='A2B RFID Tracker']")
+	private WebElement selectRelease;
+	
+	@AndroidFindBy(id = "dev.firebase.appdistribution:id/download_button")
+	private WebElement Downlode;
+	
+	@AndroidFindBy(xpath = "//*[@text='Open']")
+	private WebElement open;
+	
+	@AndroidFindBy(id = "com.android.packageinstaller:id/done_button")
+	private WebElement Done;
+	
+	@AndroidFindBy(id = "io.crash.air:id/details_rsvp_button")
+	private WebElement Next;
+	
+	@AndroidFindBy(xpath = "//*[@text='A2B Cigniti']")
+	private WebElement selectSignIn;
+	
+	@AndroidFindBy(xpath = "//*[@text='Sign in with Google']")
+	private WebElement signIN;
+	@AndroidFindBy(xpath = "//*[@text='INSTALL']")
+	private WebElement install;
+	
+	@AndroidFindBy(id = "dev.firebase.appdistribution:id/version_info")
+	private WebElement appVersion;
+
+//****************************** End Locators *********************************************************************************
+
+	public BetaAppPage(A2BMobileActionEngine actEng) {
+		appEngine = actEng;
+
+		// Page Factory for accessing elements
+		PageFactory.initElements(new AppiumFieldDecorator(appEngine.getDriver()), this);
+
+	}
+
+	public boolean waitForPage() {
+		boolean res = false;
+		try {
+			
+			if(this.appEngine.waitForElementVisibles(selectRelease, gblConstants.pageLoadTimeout * 4) ) {
+				res = true ;
+		    }else if(this.appEngine.waitForElementVisibles(signIN, gblConstants.pageLoadTimeout * 4)) {
+				res = true ;
+			}
+				
+		} catch (Exception e) {
+			LogManager.logError(BetaAppPage.class.getName(), "Failed to load the Page..");
+		}
+		return res;
+	}
+
+	
+	
+	/*
+	 * public boolean SelectAppSource() throws Throwable { boolean res = false;
+	 * String version = null; try { if(this.appEngine.isElementPresent(appname,
+	 * "appname", true)) { version = this.appEngine.getVisibleText(appname);
+	 * reportStatus(true,"Successfully Selected  Version- "
+	 * +version,"Version RFID App "); this.appEngine.click(appname); }
+	 * 
+	 * if (this.appEngine.isElementPresent(Next, "Next", true)) {
+	 * waitForElementPresentDynamically(Next, "Next Button");
+	 * this.appEngine.click(Next); }
+	 * 
+	 * } catch (Exception e) { LogManager.logError(BetaAppPage.class.getName(),
+	 * "Failed SelectAppSource.."); } return res; }
+	 */
+
+	
+	
+	/*
+	 * public String ClickOnDownlode() throws Throwable { String status = null; try
+	 * { waitForElementPresentDynamically(LaunchORDownlode, "Next Button"); String
+	 * Val = this.appEngine.getVisibleText(LaunchORDownlode);
+	 * 
+	 * if (! Val.contains("LAUNCH")){ this.appEngine.click(LaunchORDownlode);
+	 * reportStatus(
+	 * true,"Successfully Started downloding Latest vesrion RFID App .."
+	 * ,"Fail to Dowinload Latest version of RFID App");
+	 * waitForElementPresentDynamically(install, "install iCON"); status= "GO";
+	 * }else { reportStatus(true,"Already installed latest version ","App version");
+	 * status= "STOP"; } } catch (Exception e) {
+	 * LogManager.logError(BetaAppPage.class.getName(), "Failed ClickOnDownlode..");
+	 * } return status; }
+	 */
+	
+
+	public boolean InstallLatestRFIDApp() throws Throwable {
+		boolean res = false;
+		try {
+				this.appEngine.click(install);
+				reportStatus(true,"Successfully clicked on - Install..","failed Click Install.. ");
+				res= waitForElementPresentDynamically(Done, "Done iCON");
+			
+		} catch (Exception e) {
+			LogManager.logError(BetaAppPage.class.getName(), "installBetaUpdates failed..");
+		}
+		return res;
+	}
+	
+	
+	
+	public boolean ClickONDone() throws Throwable {
+		boolean res = false;
+		try {
+			
+			this.appEngine.click(Done);
+			reportStatus(true,"Installation has been completed-RFID APP","RFID APP");
+			res= true;
+		} catch (Exception e) {
+			LogManager.logError(BetaAppPage.class.getName(), "installBetaUpdates failed..");
+		}
+		return res;
+	}
+	
+	
+	public boolean signInAppTester() throws Throwable {
+		boolean res = false;
+		try {
+			
+			if (this.appEngine.isElementPresent(signIN, "Google Sign in ", true)) {
+				this.appEngine.click(signIN);
+				res= this.appEngine.click(selectSignIn);
+				reportStatus(true,"Successfully Authenticate using Gmail","fail to sign in App tester");
+			}else {
+				res= this.appEngine.isElementPresent(selectRelease, "Select Release", true);
+			}
+		} catch (Exception e) {
+			LogManager.logError(BetaAppPage.class.getName(), "signInAppTester failed..");
+		}
+		return res;
+	}
+	
+	
+	
+	public boolean selectRelease() throws Throwable {
+		boolean res = false;
+		try {
+			
+			if(this.appEngine.isElementPresent(selectRelease, "Select Release", true)) {
+				reportStatus(true,"Successfully displayed Release ","Release");
+				res= this.appEngine.click(selectRelease);
+				reportStatus(res,"successfully selected Release link","failed to select release");
+				
+				String appVer = this.appEngine.getVisibleText(appVersion);
+				reportStatus(res,"Available App Version:- "+appVer,"failed to get app version"+appVer);
+			}
+			
+		} catch (Exception e) {
+			LogManager.logError(BetaAppPage.class.getName(), "selectRelease failed..");
+		}
+		return res;
+	}
+	
+	
+	
+	
+	
+	
+	
+	public boolean installBetaUpdates() throws Throwable {
+		boolean res = false;
+		try {
+		
+				if (this.appEngine.isElementPresent(Downlode, "Downlode", true)) {
+					res= this.appEngine.click(Downlode);
+					reportStatus(res,"Downlode is in progress","fail to click on downlode");
+					waitForElementPresentDynamically(install, "install iCON");
+					this.appEngine.click(install);
+					reportStatus(res,"Successfully clicked on - Install..","failed Click Install.. ");
+					waitForElementPresentDynamically(Done, "Done iCON");
+					this.appEngine.click(Done);
+					reportStatus(res,"Successfully installed Beta app Updates..","failed Update Beta app updates ");
+				}else if(this.appEngine.isElementPresent(open, "Open", true)) {
+					reportStatus(true,"Already latest version installed","fail to install latest version");
+					
+				}
+					
+		
+		} catch (Exception e) {
+			LogManager.logError(BetaAppPage.class.getName(), "installBetaUpdates failed..");
+		}
+		return res;
+	}
+	
+	/*
+	 * public boolean InstallLatestRFIDApp() throws Throwable { boolean res = false;
+	 * String version = null ; try {
+	 * 
+	 * if(this.appEngine.isElementPresent(appname, "appname", true)) { version =
+	 * this.appEngine.getVisibleText(appname);
+	 * reportStatus(true,"Successfully Selected  Version- "
+	 * +version,"Version RFID App "); this.appEngine.click(appname); }
+	 * 
+	 * if (this.appEngine.isElementPresent(Next, "Next", true)) {
+	 * waitForElementPresentDynamically(Next, "Next Button");
+	 * this.appEngine.click(Next); }
+	 * 
+	 * waitForElementPresentDynamically(LaunchORDownlode, "Next Button"); String Val
+	 * = this.appEngine.getVisibleText(LaunchORDownlode);
+	 * 
+	 * if (! Val.contains("LAUNCH")){ res= this.appEngine.click(LaunchORDownlode);
+	 * reportStatus(
+	 * true,"Successfully Started downloding Latest vesrion RFID App .."
+	 * +version,"Fail to Dowinload Latest version of RFID App"+version); res=
+	 * waitForElementPresentDynamically(install, "install iCON");
+	 * //attachScreenshot(Status.INFO, "info"); res= this.appEngine.click(install);
+	 * reportStatus(res,"Successfully Downloaded and Starte installing RFID App.."
+	 * ,"fail to Install "); res= waitForElementPresentDynamically(Done,
+	 * "Done iCON"); //attachScreenshot(Status.INFO, "info");
+	 * reportStatus(res,"Successfully installed RFID APP Latest Version "
+	 * +version,"failed Update RFID APP Latest Version "+version); res=
+	 * this.appEngine.click(Done); }else {
+	 * reportStatus(true,"Already installed latest version "+version,"App version");
+	 * //attachScreenshot(Status.INFO, "info"); } } catch (Exception e) {
+	 * LogManager.logError(BetaAppPage.class.getName(),
+	 * "InstallLatestRFIDApp failed.."+e); } return res; }
+	 */
+	
+	/*
+	 * public boolean waitForElementText(String Text) throws Throwable { boolean res
+	 * = false; try {
+	 * 
+	 * 
+	 * for (int i = 0 ; i < 20 ; i++) { String Val =
+	 * this.appEngine.getVisibleText(LaunchORDownlode);
+	 * 
+	 * if (Val.contains(Text)) {
+	 * 
+	 * res= true; break;
+	 * 
+	 * } }
+	 * 
+	 * } catch (Exception e) { LogManager.logError(BetaAppPage.class.getName(),
+	 * "waitForElementText failed.."); } return res; }
+	 */
+	
+	
+	public boolean waitForElementPresentDynamically(WebElement Element, String LocatorName) {
+		boolean res = false;
+		try {
+			
+			for (int i = 0; i< 50 ; i++ ) {
+				res = this.appEngine.isElementPresent(Element, LocatorName, true);
+				
+				if (res) {
+					res = true;
+					Thread.sleep(1000);
+					break;
+				
+				}
+				Thread.sleep(1000);
+			}
+		} catch (Exception e) {
+			LogManager.logError(BetaAppPage.class.getName(), "Failed to load the Page..");
+		} catch (Throwable e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		return res;
+	}
+
+
+	
+
+}

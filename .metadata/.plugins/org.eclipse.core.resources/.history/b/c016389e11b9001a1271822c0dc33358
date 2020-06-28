@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<suite name="A2B Android-Automation" allow-return-values="false">
+    <suite-files>
+         
+         <suite-file path="./testing_xml/Phase-1/Phase_1_UCWeb.xml" ></suite-file>
+          <suite-file path="./testing_xml/Phase-1/Phase_1_BuildInstallRFIDApp.xml" ></suite-file>
+          <suite-file path="./testing_xml/Phase_2.xml" ></suite-file>
+           <suite-file path="./testing_xml/Phase_4.xml" ></suite-file>
+             <suite-file path="./testing_xml/Phase_5.xml" ></suite-file>
+               <suite-file path="./testing_xml/Phase-6/Phase_6_1.xml" ></suite-file>
+                <suite-file path="./testing_xml/Phase-6/Phase_6_Web.xml" ></suite-file>
+                 <suite-file path="./testing_xml/Phase-6/Phase_6_2.xml" ></suite-file>
+                  <suite-file path="./testing_xml/Phase_7.xml" ></suite-file>
+                   <suite-file path="./testing_xml/Phase-3/Phase_3_Web.xml" ></suite-file>
+                    <suite-file path="./testing_xml/Phase-3/Phase_3_Mob.xml" ></suite-file>
+    </suite-files>
+</suite>   

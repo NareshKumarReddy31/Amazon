@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<suite name="A2B-Mobile" allow-return-values="false">
+	<listeners>
+		<listener class-name="a2b.core.listeners.TestNGListener" />
+	</listeners>
+	
+	<!--  Execution Environment Parameters  -->
+	
+	<parameter name="AppiumVerNo" value="1.14.2" />
+	<parameter name="AppiumServerUrl" value="http://0.0.0.0:4723" />
+	<parameter name="AppUT" value="AppTester-Build" />
+	<parameter name="AppTestEnv" value="QA-Environment" />
+	<parameter name="DeviceUT" value="9887bc34495755394d" />
+	
+
+	<!-- Test case:  -->
+	<test name="A2B Tracking-Mobile: Build Installation">
+		<classes>
+			<class name="a2b.mobile.Phase_1.BuildInstallRFIDApp_Phase_1">
+				<methods>
+					<include name="buildInstall">
+					<parameter name="testCaseName" value="Phase_1_Install Latest RFID App Build" />
+					</include>		
+				</methods>
+			</class>
+		</classes>
+	</test>
+</suite>  

@@ -1,0 +1,80 @@
+package amazon.mobile.AppTest;
+
+
+
+
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.util.HashMap;
+import org.testng.ITestContext;
+import org.testng.annotations.BeforeClass;
+import org.testng.annotations.DataProvider;
+import org.testng.annotations.Test;
+import amazon.mobile.android.pages.*;
+import amazon.core.accelerators.TestDataProviders;
+import amazon.core.logs.LogManager;
+import amazon.mobile.android.engine.AmazonMobileTestEngine;
+
+
+public class AmazonAppTests extends AmazonMobileTestEngine {
+	
+	private AmazonAppScreens appscreen;
+	private String className = AmazonAppTests.class.getName();;
+	
+	@BeforeClass
+	public void login() throws Throwable {
+		try {
+			tcReport = super.tcReport;
+			if (loginUsingDefaultUser()) {
+				LogManager.logInfo(this.className ,"Successfully logged into Amazon Mobile App");
+				
+			} else {
+				LogManager.logInfo(this.className,"Unable to Log Into Amazon");
+			}
+
+		} catch (Exception e) {
+			e.printStackTrace();
+			LogManager.logException(e, className, "Exception to login into  ICM GUI application");
+		}
+	} 
+	
+	
+	
+	@DataProvider(name="AmazonAppTestData")
+	public static Object[][] CreateAlertsWithMultipleSites() throws FileNotFoundException, IOException{
+		String inpFileName = "AmazonAPPTestData.xlsx";
+		String inpSheetName = "AppTestData";
+		Object[][] data = TestDataProviders.loadExcelTable(inpFileName, inpSheetName);		
+		return data;		
+	}
+
+	@Test(dataProvider="AmazonAppTestData", dataProviderClass = AmazonAppTests.class)
+	public void TC01AddToCartAndVerify(HashMap<String, String> inpDetails,ITestContext testContext) throws Throwable {
+		boolean res = false;	
+		// Read Test Data 
+		String errMsg = inpDetails.get("UserNaame").trim();
+		String errMsg1 = inpDetails.get("PassWord").trim();
+
+	//	homePage = new HomePage(this.appActionEngine);		
+		try {		
+		//homePage.RefreshHomePageElements();
+		if (true) {
+			reportStatus(true,"Successfully Logged in to Mobile Home Page","Home page"); 
+			reportStatus(true,"Successfully Logged in to Mobile Home Page","Home page");
+			reportStatus(true,"Successfully Logged in to Mobile Home Page","Home page");
+			reportStatus(true,"Successfully Logged in to Mobile Home Page","Home page");
+			
+				 // attachScreenshot(Status.INFO, "info");
+			}else {
+				reportStatus(false,"Create Asset Page ","fail to navigate to Create asset screen");
+			}
+			
+		
+		}catch(Exception e) {
+			reportStatus(false,"Test-01- Create asset","Test-01- Create asset Fail to initiate..");
+			e.printStackTrace();
+		}
+	}
+	
+
+}

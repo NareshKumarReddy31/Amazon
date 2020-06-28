@@ -1,0 +1,120 @@
+package a2b.mobile.android.pages;
+
+import java.awt.Dimension;
+import java.awt.Robot;
+import java.awt.event.KeyEvent;
+import java.util.HashMap;
+import java.util.List;
+
+import org.openqa.selenium.By;
+
+import org.openqa.selenium.JavascriptExecutor;
+import org.openqa.selenium.WebElement;
+import org.openqa.selenium.interactions.Actions;
+import org.openqa.selenium.interactions.touch.TouchActions;
+import org.openqa.selenium.remote.RemoteWebElement;
+import org.openqa.selenium.support.PageFactory;
+
+import a2b.core.accelerators.AppiumActionEngine;
+import a2b.core.accelerators.AppiumActionEngine.DIRECTION;
+import a2b.core.logs.LogManager;
+import a2b.mobile.android.engine.A2BMobileActionEngine;
+import a2b.mobile.android.engine.A2BMobileTestEngine;
+import amazon.config.gblConstants;
+import io.appium.java_client.MobileBy;
+import io.appium.java_client.MobileElement;
+import io.appium.java_client.TouchAction;
+import io.appium.java_client.pagefactory.AndroidFindBy;
+import io.appium.java_client.pagefactory.AppiumFieldDecorator;
+import io.appium.java_client.touch.TapOptions;
+import io.appium.java_client.touch.offset.PointOption;
+
+public class GroupingsPage extends A2BMobileTestEngine{
+	private A2BMobileActionEngine appEngine = null;
+	
+	
+	
+	public final String eleEditAsset = "xpath=//android.widget.EditText[contains(@resource-id,'"+ gblConstants.replaceText+"')]";
+	
+	
+	public final String eleUserFields = "xpath=//*[@text='"+ gblConstants.replaceText+"']";
+	
+	 @AndroidFindBy(xpath = "//*[@text='ADD GROUPING']")
+		private WebElement btnAddGrouping;
+	 
+	 @AndroidFindBy(id = "com.a2b.rfid.rfidandroid:id/itemNameEditText")
+		private WebElement btnAddGroupingd;
+	 
+
+	 @AndroidFindBy(id = "com.a2b.rfid.rfidandroid:id/buttonMore")
+		private WebElement threeDots;
+	 @AndroidFindBy(id = "com.a2b.rfid.rfidandroid:id/unscannedTextView")
+		private WebElement unScannedLink;
+		
+	 
+	//*************************************************************************************
+
+	
+	
+		public GroupingsPage(A2BMobileActionEngine actEng) {
+			appEngine = actEng;
+			PageFactory.initElements(new AppiumFieldDecorator(appEngine.getDriver()),this);
+			 //actEng.loadPage();
+		}
+		
+	
+		public boolean waitForPage() {
+			boolean res = false;
+			try {
+				res = this.appEngine.waitForElementVisibles(btnAddGrouping, gblConstants.pageLoadTimeout * 2);
+			} catch (Exception e) {
+				LogManager.logError(LoginPage.class.getName(), "Failed to load the Groupings Screen..");
+			}
+			return res;
+		}
+	
+
+		public boolean clickOnThreeDots() {
+			boolean res = false;
+			try {
+				res = this.appEngine.click(threeDots);
+			} catch (Exception e) {
+				LogManager.logError(LoginPage.class.getName(), "Method failed- clickOnThreeDots..");
+			}
+			return res;
+		}
+
+		public boolean clickOnEligibleAssetLink() {
+			boolean res = false;
+			try {
+				res = this.appEngine.click(unScannedLink);
+			} catch (Exception e) {
+				LogManager.logError(LoginPage.class.getName(), "Method failed- clickOnEligibleAssetLink");
+			}
+			return res;
+		}
+		
+		
+
+		public boolean verifyElementsPresent(String[ ] eleTxts) throws Throwable {
+			boolean res = false;
+			try {
+				HomePage hmPage = new HomePage(appEngine);
+				
+				for (int i=0;i < eleTxts.length;i++) {
+					
+					// res = this.appEngine.ScroolElementVisible("com.a2b.rfid.rfidandroid:id/homeRecyclerView",eleTxts[i]);
+					
+					res= this.appEngine.isElementPresent(hmPage.GetElementBasedOnText(eleTxts[i]), eleTxts[i], true);
+					reportStatus(res,"Item Listed to be scanned:- "+eleTxts[i],"Item un available:- "+eleTxts[i]);
+					
+				}
+				
+			} catch (Exception e) {
+				LogManager.logError(LoginPage.class.getName(), "Method failed- verifyElementsPresent.."+e);
+			}
+			return res;
+		}
+		
+	
+	}
