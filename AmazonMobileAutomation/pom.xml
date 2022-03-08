@@ -23,7 +23,7 @@
 		<testng.version>6.14.3</testng.version>
 		<junit.version>4.12</junit.version>
 		<extent.version>3.1.5</extent.version>
-		<apache.poi.version>3.17</apache.poi.version>
+		<apache.poi.version>5.2.1</apache.poi.version>
 		<amazon.version>1.11.306</amazon.version>
 		<log4j.version>1.2.14</log4j.version>
 		<slf4j.version>1.7.25</slf4j.version>
